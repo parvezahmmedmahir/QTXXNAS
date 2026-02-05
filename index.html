@@ -1,0 +1,2956 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>QUANTUM X PRO</title>
+
+  <!-- Premium Font -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Roboto+Mono:wght@300;400&display=swap"
+    rel="stylesheet">
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+
+  <!-- Vanta JS Dependencies -->
+  <!-- Three.js (Module) will be imported in the script -->
+
+  <!-- Quantum Telemetry Engine -->
+  <script src="quantum_telemetry.js"></script>
+
+
+  <style>
+    :root {
+      --color-void: #000000;
+      --color-glass: rgba(255, 255, 255, 0.05);
+      --border-glass: rgba(255, 255, 255, 0.15);
+      --font-display: 'Orbitron', sans-serif;
+      --font-tech: 'Roboto Mono', monospace;
+
+      --accent-cyan: #22d3ee;
+      --accent-green: #22c55e;
+      --accent-red: #ef4444;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: var(--color-void);
+      color: #fff;
+      font-family: var(--font-tech);
+      overflow-x: hidden;
+      overflow-y: auto;
+      width: 100vw;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    /* Custom Scrollbar for body (right edge of browser) */
+    body::-webkit-scrollbar {
+      width: 10px;
+    }
+
+    body::-webkit-scrollbar-track {
+      background: rgba(0, 0, 0, 0.4);
+    }
+
+    body::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.25);
+      border-radius: 5px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    body::-webkit-scrollbar-thumb:hover {
+      background: rgba(255, 255, 255, 0.4);
+    }
+
+    /* 3D Container */
+    #scene-container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: -1;
+    }
+
+    /* Cinematic Vignette */
+    .vignette {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: radial-gradient(circle, transparent 40%, black 120%);
+      z-index: -1;
+      pointer-events: none;
+    }
+
+    .up {
+      color: var(--accent-green);
+    }
+
+    .ticker-wrap {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 40px;
+      background: rgba(0, 0, 0, 0.7);
+      border-bottom: 1px solid var(--border-glass);
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      backdrop-filter: blur(5px);
+      transition: opacity 0.3s ease, transform 0.3s ease;
+    }
+
+    .ticker {
+      display: flex;
+      animation: ticker-slide 60s linear infinite;
+      white-space: nowrap;
+    }
+
+    .ticker-item {
+      padding: 0 20px;
+      font-size: 0.75rem;
+      color: #aaa;
+      font-family: var(--font-tech);
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      transition: opacity 0.3s ease;
+    }
+
+    .ticker-item span {
+      transition: color 0.2s ease;
+    }
+
+    @keyframes ticker-slide {
+      0% {
+        transform: translateX(0);
+      }
+
+      100% {
+        transform: translateX(-50%);
+      }
+    }
+
+    .down {
+      color: var(--accent-red);
+    }
+
+    /* Layout Structure */
+    .app-wrapper {
+      position: relative;
+      z-index: 10;
+      width: 100%;
+      max-width: 500px;
+      padding: 80px 20px 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+      overflow: visible;
+    }
+
+    /* Typography */
+    .headline {
+      font-family: var(--font-display);
+      font-size: 3rem;
+      font-weight: 900;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      text-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
+      margin-bottom: 40px;
+      text-align: center;
+      background: linear-gradient(180deg, #fff, #888);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+
+    /* Cards (License & Signal) */
+    .card {
+      background: rgba(0, 0, 0, 0.6);
+      border: 1px solid var(--border-glass);
+      backdrop-filter: blur(20px);
+      padding: 30px;
+      border-radius: 4px;
+      width: 100%;
+      box-shadow: 0 0 50px rgba(0, 0, 0, 0.5);
+      position: relative;
+      overflow: visible;
+      margin-bottom: 20px;
+      flex-shrink: 0;
+    }
+
+    /* Form Section Specific Padding */
+    #form-section {
+      padding-left: 80px;
+      padding-right: 80px;
+    }
+
+    /* Scanline Overlay on Cards */
+    .card::after {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: linear-gradient(rgba(0, 0, 0, 0) 50%, rgba(0, 0, 0, 0.3) 50%);
+      background-size: 100% 4px;
+      pointer-events: none;
+      z-index: 2;
+    }
+
+    /* Inputs */
+    .input-group {
+      margin-bottom: 20px;
+      text-align: left;
+    }
+
+    .input-label {
+      font-size: 0.7rem;
+      color: #888;
+      margin-bottom: 8px;
+      display: block;
+      letter-spacing: 1px;
+      font-weight: 700;
+      font-family: var(--font-display);
+    }
+
+    .input {
+      width: 100%;
+      padding: 14px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border-glass);
+      color: #fff;
+      font-family: var(--font-tech);
+      font-size: 1rem;
+      outline: none;
+      transition: 0.3s;
+      border-radius: 2px;
+    }
+
+    .input:focus {
+      border-color: #fff;
+      box-shadow: 0 0 15px rgba(255, 255, 255, 0.1);
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    /* Select Dropdown Specific Styling */
+    select.input {
+      background: rgba(0, 0, 0, 0.6);
+      color: #fff;
+      cursor: pointer;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23fff' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 14px center;
+      padding-right: 40px;
+    }
+
+    select.input:focus {
+      background: rgba(0, 0, 0, 0.8);
+    }
+
+    select.input option {
+      background: #000;
+      color: #fff;
+      padding: 10px;
+    }
+
+
+    /* Buttons */
+    .btn {
+      width: 100%;
+      padding: 16px;
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid var(--border-glass);
+      color: #fff;
+      font-family: var(--font-display);
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      cursor: pointer;
+      transition: 0.3s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      border-radius: 2px;
+    }
+
+    .btn:hover {
+      background: #fff;
+      color: #000;
+      box-shadow: 0 0 20px rgba(255, 255, 255, 0.4);
+    }
+
+    .btn-primary {
+      background: rgba(255, 255, 255, 0.15);
+    }
+
+    /* Utility Helpers */
+    .hidden {
+      display: none !important;
+    }
+
+    .error-msg {
+      color: var(--accent-red);
+      font-size: 0.8rem;
+      margin-top: 10px;
+      min-height: 20px;
+      font-weight: 700;
+    }
+
+    /* Custom Dropdown (Market Selector) */
+    .custom-trigger {
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .custom-menu {
+      position: absolute;
+      top: 110%;
+      left: 0;
+      width: 100%;
+      background: rgba(5, 5, 5, 0.98);
+      border: 1px solid var(--border-glass);
+      border-radius: 8px;
+      backdrop-filter: blur(20px);
+      z-index: 1000;
+      padding: 12px;
+      display: none;
+      max-height: 85vh;
+      min-height: 500px;
+      overflow: visible;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.9);
+    }
+
+    .custom-menu.show {
+      display: block;
+    }
+
+    .search-box {
+      position: relative;
+      margin-bottom: 12px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .search-box input {
+      width: 100%;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border-glass);
+      border-radius: 4px;
+      color: #fff;
+      padding: 8px 12px 8px 35px;
+      font-family: var(--font-tech);
+      font-size: 0.85rem;
+      outline: none;
+    }
+
+    .search-box input:focus {
+      border-color: #fff;
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    .search-box i {
+      position: absolute;
+      left: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #64748b;
+      font-size: 0.9rem;
+    }
+
+    .asset-list-scroll {
+      max-height: calc(85vh - 120px);
+      min-height: 450px;
+      overflow-y: auto;
+      overflow-x: visible;
+      padding-right: 12px;
+    }
+
+    .asset-list-scroll::-webkit-scrollbar {
+      width: 10px;
+    }
+
+    .asset-list-scroll::-webkit-scrollbar-track {
+      background: rgba(0, 0, 0, 0.4);
+      border-radius: 5px;
+      margin: 5px 0;
+    }
+
+    .asset-list-scroll::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.3);
+      border-radius: 5px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .asset-list-scroll::-webkit-scrollbar-thumb:hover {
+      background: rgba(255, 255, 255, 0.5);
+    }
+
+    .asset-category {
+      font-size: 0.65rem;
+      color: #888;
+      font-weight: 800;
+      text-transform: uppercase;
+      margin: 12px 0 8px;
+      letter-spacing: 1.5px;
+      padding-bottom: 4px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      font-family: var(--font-display);
+    }
+
+    .asset-item {
+      padding: 10px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      border-radius: 6px;
+      margin-bottom: 4px;
+      transition: all 0.2s;
+    }
+
+    .asset-item:hover {
+      background: rgba(255, 255, 255, 0.15);
+    }
+
+    .asset-item.active {
+      background: rgba(255, 255, 255, 0.2);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+    }
+
+    .asset-name {
+      font-weight: 700;
+      font-size: 0.85rem;
+      color: #fff;
+    }
+
+    .asset-desc {
+      font-size: 0.7rem;
+      color: #94a3b8;
+    }
+
+    .asset-tag {
+      margin-left: auto;
+      font-size: 0.65rem;
+      padding: 3px 8px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 4px;
+      font-weight: 700;
+      color: #cbd5e1;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .otc-tag {
+      background: rgba(245, 158, 11, 0.2);
+      color: #fbbf24;
+      border: 1px solid rgba(245, 158, 11, 0.3);
+    }
+
+    .real-tag-open {
+      background: rgba(34, 197, 94, 0.2);
+      color: #22c55e;
+      border: 1px solid rgba(34, 197, 94, 0.3);
+    }
+
+    .real-tag-closed {
+      background: rgba(239, 68, 68, 0.2);
+      color: #ef4444;
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      opacity: 0.7;
+    }
+
+    .asset-item.closed {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .asset-item.closed:hover {
+      background: rgba(239, 68, 68, 0.1);
+    }
+
+    .lock-icon {
+      font-size: 0.6rem;
+    }
+
+    /* Result Display */
+    .result-value {
+      font-size: 3.5rem;
+      font-family: var(--font-display);
+      font-weight: 900;
+      margin: 10px 0;
+      letter-spacing: 2px;
+      text-align: center;
+      white-space: nowrap;
+    }
+
+    .badge {
+      border: 1px solid;
+      padding: 4px 12px;
+      font-size: 0.7rem;
+      letter-spacing: 1px;
+      display: inline-block;
+    }
+
+    .detail-grid {
+      display: grid;
+      gap: 10px;
+      margin-top: 20px;
+    }
+
+    .detail-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 6px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .detail-label {
+      font-size: 0.75rem;
+      color: #888;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      font-family: var(--font-display);
+    }
+
+    .detail-val {
+      font-size: 0.9rem;
+      color: #fff;
+      font-weight: 700;
+    }
+
+    .result-card {
+      background: rgba(0, 0, 0, 0.7);
+      border: 1px solid var(--border-glass);
+      backdrop-filter: blur(20px);
+      padding: 30px;
+      border-radius: 4px;
+      width: 100%;
+      box-shadow: 0 0 50px rgba(0, 0, 0, 0.5);
+    }
+
+    .arrow-container {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 20px 0;
+      height: 100px;
+    }
+
+    .btn-glass {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border-glass);
+      font-size: 0.85rem;
+    }
+
+    .btn-glass:hover {
+      background: rgba(255, 255, 255, 0.12);
+    }
+
+    .btn-glossy {
+      background: rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(10px);
+      border: 1px solid var(--border-glass);
+      transition: all 0.3s;
+    }
+
+    .btn-glossy:hover {
+      background: rgba(255, 255, 255, 0.15);
+      transform: translateY(-2px);
+    }
+
+    /* Premium License Gate Styling */
+    .license-card {
+      max-width: 480px;
+      margin: 0 auto;
+      padding: 40px 35px;
+    }
+
+    .license-header {
+      text-align: center;
+      margin-bottom: 35px;
+    }
+
+    .lock-icon-wrapper {
+      width: 70px;
+      height: 70px;
+      margin: 0 auto 20px;
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
+      border: 2px solid rgba(255, 255, 255, 0.2);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      animation: iconPulse 3s ease-in-out infinite;
+    }
+
+    .lock-icon-wrapper::before {
+      content: '';
+      position: absolute;
+      inset: -3px;
+      border-radius: 50%;
+      background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+      animation: iconRotate 4s linear infinite;
+      z-index: -1;
+    }
+
+    .lock-icon-wrapper i {
+      font-size: 2rem;
+      color: #fff;
+      filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.5));
+    }
+
+    @keyframes iconPulse {
+
+      0%,
+      100% {
+        transform: scale(1);
+      }
+
+      50% {
+        transform: scale(1.05);
+      }
+    }
+
+    @keyframes iconRotate {
+      0% {
+        transform: rotate(0deg);
+      }
+
+      100% {
+        transform: rotate(360deg);
+      }
+    }
+
+    .license-title {
+      font-family: var(--font-display);
+      font-size: 1.8rem;
+      font-weight: 900;
+      letter-spacing: 3px;
+      margin: 0 0 10px;
+      background: linear-gradient(135deg, #fff, #aaa);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      text-shadow: 0 0 30px rgba(255, 255, 255, 0.3);
+    }
+
+    .license-subtitle {
+      font-size: 0.75rem;
+      color: #888;
+      letter-spacing: 2px;
+      margin: 0;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+
+    .license-input-wrapper {
+      margin-bottom: 25px;
+    }
+
+    .premium-input-container {
+      position: relative;
+      margin-bottom: 10px;
+    }
+
+    .premium-input {
+      font-size: 1.1rem;
+      padding: 18px 20px;
+      text-align: center;
+      letter-spacing: 3px;
+      font-weight: 700;
+      border: 2px solid rgba(255, 255, 255, 0.15);
+      background: rgba(0, 0, 0, 0.4);
+      transition: all 0.3s;
+      position: relative;
+      z-index: 1;
+    }
+
+    .premium-input:focus {
+      border-color: rgba(255, 255, 255, 0.5);
+      background: rgba(0, 0, 0, 0.6);
+      box-shadow: 0 0 25px rgba(255, 255, 255, 0.2);
+      transform: translateY(-2px);
+    }
+
+    .paste-btn {
+      position: absolute;
+      right: 15px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      color: #fff;
+      padding: 6px 12px;
+      border-radius: 4px;
+      font-size: 0.65rem;
+      font-family: var(--font-tech);
+      letter-spacing: 1px;
+      cursor: pointer;
+      z-index: 10;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .paste-btn:hover {
+      background: rgba(255, 255, 255, 0.2);
+      border-color: rgba(255, 255, 255, 0.4);
+      box-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
+    }
+
+    .paste-btn i {
+      font-size: 0.75rem;
+    }
+
+    .input-glow {
+      position: absolute;
+      inset: 0;
+      border-radius: 2px;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+      opacity: 0;
+      transition: opacity 0.3s;
+      pointer-events: none;
+    }
+
+    .premium-input:focus+.input-glow {
+      opacity: 1;
+      animation: inputGlowSlide 2s ease-in-out infinite;
+    }
+
+    @keyframes inputGlowSlide {
+
+      0%,
+      100% {
+        transform: translateX(-100%);
+      }
+
+      50% {
+        transform: translateX(100%);
+      }
+    }
+
+    .input-hint {
+      font-size: 0.7rem;
+      color: #666;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-weight: 500;
+      padding-left: 4px;
+    }
+
+    .input-hint i {
+      font-size: 0.75rem;
+      color: #888;
+    }
+
+    .premium-unlock-btn {
+      position: relative;
+      overflow: hidden;
+      padding: 20px;
+      font-size: 1rem;
+      letter-spacing: 3px;
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.1));
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      margin-bottom: 15px;
+    }
+
+    .premium-unlock-btn:hover {
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.3), rgba(255, 255, 255, 0.15));
+      border-color: rgba(255, 255, 255, 0.5);
+      box-shadow: 0 0 30px rgba(255, 255, 255, 0.3);
+      transform: translateY(-3px);
+    }
+
+    .btn-content {
+      position: relative;
+      z-index: 2;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+    }
+
+    .btn-shine {
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+      transition: left 0.5s;
+    }
+
+    .premium-unlock-btn:hover .btn-shine {
+      left: 100%;
+    }
+
+    .premium-error {
+      min-height: 24px;
+      font-size: 0.85rem;
+      text-align: center;
+      padding: 8px;
+      border-radius: 4px;
+      background: rgba(239, 68, 68, 0.1);
+      border: 1px solid transparent;
+    }
+
+    .premium-error:not(:empty) {
+      border-color: rgba(239, 68, 68, 0.3);
+    }
+
+    .section-divider {
+      position: relative;
+    }
+
+    /* QUANTUM FIREWALL UI */
+    #security-alert-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0, 0, 0, 0.95);
+      z-index: 9999;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      backdrop-filter: blur(40px);
+      animation: fadeIn 0.4s ease;
+    }
+
+    .security-modal {
+      background: rgba(15, 15, 15, 0.8);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      padding: 40px;
+      border-radius: 4px;
+      text-align: center;
+      max-width: 450px;
+      box-shadow: 0 0 100px rgba(239, 68, 68, 0.2);
+      position: relative;
+    }
+
+    .security-modal i {
+      font-size: 4rem;
+      color: #ef4444;
+      margin-bottom: 20px;
+      animation: pulseAlert 1.5s infinite;
+    }
+
+    .security-title {
+      font-family: var(--font-display);
+      font-size: 1.5rem;
+      letter-spacing: 4px;
+      color: #fff;
+      margin-bottom: 15px;
+    }
+
+    .security-desc {
+      color: #94a3b8;
+      font-size: 0.85rem;
+      line-height: 1.6;
+      margin-bottom: 30px;
+    }
+
+    @keyframes pulseAlert {
+      0% {
+        transform: scale(1);
+        opacity: 1;
+      }
+
+      50% {
+        transform: scale(1.1);
+        opacity: 0.7;
+      }
+
+      100% {
+        transform: scale(1);
+        opacity: 1;
+      }
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+      }
+
+      to {
+        opacity: 1;
+      }
+    }
+
+    .section-divider {
+      position: relative;
+      text-align: center;
+      margin: 30px 0 20px;
+      overflow: hidden;
+    }
+
+    .section-divider::before,
+    .section-divider::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      width: 40%;
+      height: 1px;
+      background: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.2), transparent);
+    }
+
+    .section-divider::before {
+      left: 0;
+    }
+
+    .section-divider::after {
+      right: 0;
+    }
+
+    .section-divider span {
+      font-size: 0.65rem;
+      color: #666;
+      letter-spacing: 2px;
+      font-weight: 700;
+      padding: 0 15px;
+      background: rgba(0, 0, 0, 0.6);
+      position: relative;
+      font-family: var(--font-display);
+    }
+
+    .social-buttons {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 25px;
+    }
+
+    .btn-social {
+      padding: 14px;
+      font-size: 0.8rem;
+      letter-spacing: 1.5px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      transition: all 0.3s;
+    }
+
+    .btn-social i {
+      font-size: 1.2rem;
+    }
+
+    .telegram-btn:hover {
+      background: rgba(0, 136, 204, 0.2);
+      border-color: #0088cc;
+      box-shadow: 0 0 20px rgba(0, 136, 204, 0.3);
+    }
+
+    .telegram-btn i {
+      color: #0088cc;
+    }
+
+    .youtube-btn:hover {
+      background: rgba(255, 0, 0, 0.2);
+      border-color: #ff0000;
+      box-shadow: 0 0 20px rgba(255, 0, 0, 0.3);
+    }
+
+    .youtube-btn i {
+      color: #ff0000;
+    }
+
+    .security-badge {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 12px;
+      background: rgba(34, 197, 94, 0.1);
+      border: 1px solid rgba(34, 197, 94, 0.3);
+      border-radius: 6px;
+      font-size: 0.7rem;
+      color: #22c55e;
+      letter-spacing: 1.5px;
+      font-weight: 700;
+    }
+
+    .security-badge i {
+      font-size: 0.85rem;
+      animation: lockPulse 2s ease-in-out infinite;
+    }
+
+    @keyframes lockPulse {
+
+      0%,
+      100% {
+        opacity: 1;
+      }
+
+      50% {
+        opacity: 0.5;
+      }
+    }
+
+    /* Loading */
+    #loading-screen {
+      position: fixed;
+      inset: 0;
+      background: #000;
+      z-index: 9999;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+    }
+
+    .loader-ring {
+      width: 50px;
+      height: 50px;
+      border: 2px solid rgba(255, 255, 255, 0.2);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    /* Responsiveness */
+    @media (max-width: 768px) {
+      .headline {
+        font-size: 2rem;
+      }
+
+      .app-wrapper {
+        padding-top: 60px;
+      }
+
+      /* More space for ticker */
+      .card {
+        padding: 20px;
+      }
+
+      .result-value {
+        font-size: 2.5rem;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <!-- Cinematic Layers -->
+  <div class="vignette"></div>
+  <div id="scene-container"></div>
+
+  <!-- Ticker (Top) -->
+  <div class="ticker-wrap">
+    <div class="ticker" id="live-ticker">
+      <!-- Real Market Assets -->
+      <div class="ticker-item" data-pair="EUR/USD" data-base="1.0842" data-decimals="4">EUR/USD <span class="up">▲
+          1.0842</span></div>
+      <div class="ticker-item" data-pair="GBP/USD" data-base="1.2540" data-decimals="4">GBP/USD <span class="down">▼
+          1.2540</span></div>
+      <div class="ticker-item" data-pair="USD/JPY" data-base="145.20" data-decimals="2">USD/JPY <span class="up">▲
+          145.20</span></div>
+      <div class="ticker-item" data-pair="AUD/USD" data-base="0.6550" data-decimals="4">AUD/USD <span class="down">▼
+          0.6550</span></div>
+      <div class="ticker-item" data-pair="BTC/USD" data-base="64230" data-decimals="0">BTC/USD <span class="up">▲
+          64,230</span></div>
+      <div class="ticker-item" data-pair="ETH/USD" data-base="3450" data-decimals="0">ETH/USD <span class="down">▼
+          3,450</span></div>
+      <div class="ticker-item" data-pair="XAU/USD" data-base="2340.50" data-decimals="2">XAU/USD <span class="up">▲
+          2,340.50</span></div>
+      <!-- OTC Forex Pairs -->
+      <div class="ticker-item" data-pair="NZD/CAD (OTC)" data-base="0.8275" data-decimals="4">NZD/CAD (OTC) <span
+          class="up">▲ 0.8275</span></div>
+      <div class="ticker-item" data-pair="USD/EGP (OTC)" data-base="30.85" data-decimals="2">USD/EGP (OTC) <span
+          class="down">▼ 30.85</span></div>
+      <div class="ticker-item" data-pair="USD/CHF (OTC)" data-base="0.8750" data-decimals="4">USD/CHF (OTC) <span
+          class="up">▲ 0.8750</span></div>
+      <div class="ticker-item" data-pair="USD/BRL (OTC)" data-base="4.9520" data-decimals="4">USD/BRL (OTC) <span
+          class="down">▼ 4.9520</span></div>
+      <div class="ticker-item" data-pair="AUD/NZD (OTC)" data-base="1.0885" data-decimals="4">AUD/NZD (OTC) <span
+          class="up">▲ 1.0885</span></div>
+      <div class="ticker-item" data-pair="EUR/SGD (OTC)" data-base="1.4520" data-decimals="4">EUR/SGD (OTC) <span
+          class="up">▲ 1.4520</span></div>
+      <div class="ticker-item" data-pair="USD/PHP (OTC)" data-base="56.25" data-decimals="2">USD/PHP (OTC) <span
+          class="down">▼ 56.25</span></div>
+      <div class="ticker-item" data-pair="USD/IDR (OTC)" data-base="15850" data-decimals="0">USD/IDR (OTC) <span
+          class="up">▲ 15,850</span></div>
+      <div class="ticker-item" data-pair="USD/NGN (OTC)" data-base="1480.50" data-decimals="2">USD/NGN (OTC) <span
+          class="down">▼ 1,480.50</span></div>
+      <div class="ticker-item" data-pair="USD/BDT (OTC)" data-base="109.75" data-decimals="2">USD/BDT (OTC) <span
+          class="up">▲ 109.75</span></div>
+      <div class="ticker-item" data-pair="USD/ARS (OTC)" data-base="850.25" data-decimals="2">USD/ARS (OTC) <span
+          class="down">▼ 850.25</span></div>
+      <div class="ticker-item" data-pair="USD/MXN (OTC)" data-base="17.0850" data-decimals="4">USD/MXN (OTC) <span
+          class="up">▲ 17.0850</span></div>
+      <div class="ticker-item" data-pair="USD/TRY (OTC)" data-base="32.15" data-decimals="2">USD/TRY (OTC) <span
+          class="down">▼ 32.15</span></div>
+      <div class="ticker-item" data-pair="USD/PKR (OTC)" data-base="278.50" data-decimals="2">USD/PKR (OTC) <span
+          class="up">▲ 278.50</span></div>
+      <div class="ticker-item" data-pair="USD/INR (OTC)" data-base="83.1250" data-decimals="4">USD/INR (OTC) <span
+          class="down">▼ 83.1250</span></div>
+      <div class="ticker-item" data-pair="NZD/CHF (OTC)" data-base="0.5520" data-decimals="4">NZD/CHF (OTC) <span
+          class="up">▲ 0.5520</span></div>
+      <div class="ticker-item" data-pair="CAD/CHF (OTC)" data-base="0.6675" data-decimals="4">CAD/CHF (OTC) <span
+          class="down">▼ 0.6675</span></div>
+      <div class="ticker-item" data-pair="NZD/JPY (OTC)" data-base="91.50" data-decimals="2">NZD/JPY (OTC) <span
+          class="up">▲ 91.50</span></div>
+      <div class="ticker-item" data-pair="USD/COP (OTC)" data-base="4105" data-decimals="0">USD/COP (OTC) <span
+          class="down">▼ 4,105</span></div>
+      <div class="ticker-item" data-pair="USD/DZD (OTC)" data-base="134.75" data-decimals="2">USD/DZD (OTC) <span
+          class="up">▲ 134.75</span></div>
+      <div class="ticker-item" data-pair="USD/ZAR (OTC)" data-base="18.6250" data-decimals="4">USD/ZAR (OTC) <span
+          class="down">▼ 18.6250</span></div>
+      <!-- OTC Crypto -->
+      <div class="ticker-item" data-pair="SHIBA (OTC)" data-base="0.000025" data-decimals="6">SHIBA (OTC) <span
+          class="up">▲ 0.000025</span></div>
+      <div class="ticker-item" data-pair="PEPE (OTC)" data-base="0.000012" data-decimals="6">PEPE (OTC) <span
+          class="down">▼ 0.000012</span></div>
+      <div class="ticker-item" data-pair="TRUMP (OTC)" data-base="8.50" data-decimals="2">TRUMP (OTC) <span class="up">▲
+          8.50</span></div>
+      <div class="ticker-item" data-pair="DOGWIF (OTC)" data-base="2.85" data-decimals="2">DOGWIF (OTC) <span
+          class="down">▼ 2.85</span></div>
+      <div class="ticker-item" data-pair="BONK (OTC)" data-base="0.000035" data-decimals="6">BONK (OTC) <span
+          class="up">▲ 0.000035</span></div>
+      <div class="ticker-item" data-pair="FLOKI (OTC)" data-base="0.000185" data-decimals="6">FLOKI (OTC) <span
+          class="down">▼ 0.000185</span></div>
+      <div class="ticker-item" data-pair="DOGE (OTC)" data-base="0.0825" data-decimals="4">DOGE (OTC) <span class="up">▲
+          0.0825</span></div>
+      <div class="ticker-item" data-pair="BTC/USD (OTC)" data-base="62500" data-decimals="0">BTC/USD (OTC) <span
+          class="down">▼ 62,500</span></div>
+      <!-- OTC Stocks -->
+      <div class="ticker-item" data-pair="BOEING (OTC)" data-base="185.75" data-decimals="2">BOEING (OTC) <span
+          class="up">▲ 185.75</span></div>
+      <div class="ticker-item" data-pair="FB (OTC)" data-base="485.50" data-decimals="2">FB (OTC) <span class="down">▼
+          485.50</span></div>
+      <div class="ticker-item" data-pair="MSFT (OTC)" data-base="415.25" data-decimals="2">MSFT (OTC) <span class="up">▲
+          415.25</span></div>
+      <div class="ticker-item" data-pair="INTC (OTC)" data-base="42.85" data-decimals="2">INTC (OTC) <span
+          class="down">▼ 42.85</span></div>
+      <div class="ticker-item" data-pair="MCD (OTC)" data-base="285.50" data-decimals="2">MCD (OTC) <span class="up">▲
+          285.50</span></div>
+      <div class="ticker-item" data-pair="AXP (OTC)" data-base="195.75" data-decimals="2">AXP (OTC) <span class="down">▼
+          195.75</span></div>
+      <div class="ticker-item" data-pair="JOHNSON (OTC)" data-base="162.50" data-decimals="2">JOHNSON (OTC) <span
+          class="up">▲ 162.50</span></div>
+      <!-- OTC Commodities & Indices -->
+      <div class="ticker-item" data-pair="XAG/USD (OTC)" data-base="28.45" data-decimals="2">XAG/USD (OTC) <span
+          class="down">▼ 28.45</span></div>
+      <div class="ticker-item" data-pair="XAU/USD (OTC)" data-base="2325.50" data-decimals="2">XAU/USD (OTC) <span
+          class="up">▲ 2,325.50</span></div>
+      <div class="ticker-item" data-pair="UKBR (OTC)" data-base="82.50" data-decimals="2">UKBR (OTC) <span
+          class="down">▼ 82.50</span></div>
+      <div class="ticker-item" data-pair="USCR (OTC)" data-base="75.25" data-decimals="2">USCR (OTC) <span class="up">▲
+          75.25</span></div>
+      <div class="ticker-item" data-pair="DJI/USD (OTC)" data-base="38500" data-decimals="0">DJI/USD (OTC) <span
+          class="down">▼ 38,500</span></div>
+      <div class="ticker-item" data-pair="F40/EUR (OTC)" data-base="7850.50" data-decimals="2">F40/EUR (OTC) <span
+          class="up">▲ 7,850.50</span></div>
+      <div class="ticker-item" data-pair="FTS/GBP (OTC)" data-base="7850" data-decimals="0">FTS/GBP (OTC) <span
+          class="down">▼ 7,850</span></div>
+      <!-- Loop (Repeat for seamless scrolling) -->
+      <div class="ticker-item" data-pair="EUR/USD" data-base="1.0842" data-decimals="4">EUR/USD <span class="up">▲
+          1.0842</span></div>
+      <div class="ticker-item" data-pair="GBP/USD" data-base="1.2540" data-decimals="4">GBP/USD <span class="down">▼
+          1.2540</span></div>
+      <div class="ticker-item" data-pair="USD/JPY" data-base="145.20" data-decimals="2">USD/JPY <span class="up">▲
+          145.20</span></div>
+      <div class="ticker-item" data-pair="AUD/USD" data-base="0.6550" data-decimals="4">AUD/USD <span class="down">▼
+          0.6550</span></div>
+      <div class="ticker-item" data-pair="BTC/USD" data-base="64230" data-decimals="0">BTC/USD <span class="up">▲
+          64,230</span></div>
+      <div class="ticker-item" data-pair="ETH/USD" data-base="3450" data-decimals="0">ETH/USD <span class="down">▼
+          3,450</span></div>
+      <div class="ticker-item" data-pair="XAU/USD" data-base="2340.50" data-decimals="2">XAU/USD <span class="up">▲
+          2,340.50</span></div>
+      <div class="ticker-item" data-pair="NZD/CAD (OTC)" data-base="0.8275" data-decimals="4">NZD/CAD (OTC) <span
+          class="up">▲ 0.8275</span></div>
+      <div class="ticker-item" data-pair="USD/EGP (OTC)" data-base="30.85" data-decimals="2">USD/EGP (OTC) <span
+          class="down">▼ 30.85</span></div>
+      <div class="ticker-item" data-pair="USD/CHF (OTC)" data-base="0.8750" data-decimals="4">USD/CHF (OTC) <span
+          class="up">▲ 0.8750</span></div>
+      <div class="ticker-item" data-pair="USD/BRL (OTC)" data-base="4.9520" data-decimals="4">USD/BRL (OTC) <span
+          class="down">▼ 4.9520</span></div>
+      <div class="ticker-item" data-pair="AUD/NZD (OTC)" data-base="1.0885" data-decimals="4">AUD/NZD (OTC) <span
+          class="up">▲ 1.0885</span></div>
+      <div class="ticker-item" data-pair="EUR/SGD (OTC)" data-base="1.4520" data-decimals="4">EUR/SGD (OTC) <span
+          class="up">▲ 1.4520</span></div>
+      <div class="ticker-item" data-pair="USD/PHP (OTC)" data-base="56.25" data-decimals="2">USD/PHP (OTC) <span
+          class="down">▼ 56.25</span></div>
+      <div class="ticker-item" data-pair="USD/IDR (OTC)" data-base="15850" data-decimals="0">USD/IDR (OTC) <span
+          class="up">▲ 15,850</span></div>
+      <div class="ticker-item" data-pair="USD/NGN (OTC)" data-base="1480.50" data-decimals="2">USD/NGN (OTC) <span
+          class="down">▼ 1,480.50</span></div>
+      <div class="ticker-item" data-pair="USD/BDT (OTC)" data-base="109.75" data-decimals="2">USD/BDT (OTC) <span
+          class="up">▲ 109.75</span></div>
+      <div class="ticker-item" data-pair="USD/ARS (OTC)" data-base="850.25" data-decimals="2">USD/ARS (OTC) <span
+          class="down">▼ 850.25</span></div>
+      <div class="ticker-item" data-pair="USD/MXN (OTC)" data-base="17.0850" data-decimals="4">USD/MXN (OTC) <span
+          class="up">▲ 17.0850</span></div>
+      <div class="ticker-item" data-pair="USD/TRY (OTC)" data-base="32.15" data-decimals="2">USD/TRY (OTC) <span
+          class="down">▼ 32.15</span></div>
+      <div class="ticker-item" data-pair="USD/PKR (OTC)" data-base="278.50" data-decimals="2">USD/PKR (OTC) <span
+          class="up">▲ 278.50</span></div>
+      <div class="ticker-item" data-pair="USD/INR (OTC)" data-base="83.1250" data-decimals="4">USD/INR (OTC) <span
+          class="down">▼ 83.1250</span></div>
+      <div class="ticker-item" data-pair="NZD/CHF (OTC)" data-base="0.5520" data-decimals="4">NZD/CHF (OTC) <span
+          class="up">▲ 0.5520</span></div>
+      <div class="ticker-item" data-pair="CAD/CHF (OTC)" data-base="0.6675" data-decimals="4">CAD/CHF (OTC) <span
+          class="down">▼ 0.6675</span></div>
+      <div class="ticker-item" data-pair="NZD/JPY (OTC)" data-base="91.50" data-decimals="2">NZD/JPY (OTC) <span
+          class="up">▲ 91.50</span></div>
+      <div class="ticker-item" data-pair="USD/COP (OTC)" data-base="4105" data-decimals="0">USD/COP (OTC) <span
+          class="down">▼ 4,105</span></div>
+      <div class="ticker-item" data-pair="USD/DZD (OTC)" data-base="134.75" data-decimals="2">USD/DZD (OTC) <span
+          class="up">▲ 134.75</span></div>
+      <div class="ticker-item" data-pair="USD/ZAR (OTC)" data-base="18.6250" data-decimals="4">USD/ZAR (OTC) <span
+          class="down">▼ 18.6250</span></div>
+      <div class="ticker-item" data-pair="SHIBA (OTC)" data-base="0.000025" data-decimals="6">SHIBA (OTC) <span
+          class="up">▲ 0.000025</span></div>
+      <div class="ticker-item" data-pair="PEPE (OTC)" data-base="0.000012" data-decimals="6">PEPE (OTC) <span
+          class="down">▼ 0.000012</span></div>
+      <div class="ticker-item" data-pair="TRUMP (OTC)" data-base="8.50" data-decimals="2">TRUMP (OTC) <span class="up">▲
+          8.50</span></div>
+      <div class="ticker-item" data-pair="DOGWIF (OTC)" data-base="2.85" data-decimals="2">DOGWIF (OTC) <span
+          class="down">▼ 2.85</span></div>
+      <div class="ticker-item" data-pair="BONK (OTC)" data-base="0.000035" data-decimals="6">BONK (OTC) <span
+          class="up">▲ 0.000035</span></div>
+      <div class="ticker-item" data-pair="FLOKI (OTC)" data-base="0.000185" data-decimals="6">FLOKI (OTC) <span
+          class="down">▼ 0.000185</span></div>
+      <div class="ticker-item" data-pair="DOGE (OTC)" data-base="0.0825" data-decimals="4">DOGE (OTC) <span class="up">▲
+          0.0825</span></div>
+      <div class="ticker-item" data-pair="BTC/USD (OTC)" data-base="62500" data-decimals="0">BTC/USD (OTC) <span
+          class="down">▼ 62,500</span></div>
+      <div class="ticker-item" data-pair="BOEING (OTC)" data-base="185.75" data-decimals="2">BOEING (OTC) <span
+          class="up">▲ 185.75</span></div>
+      <div class="ticker-item" data-pair="FB (OTC)" data-base="485.50" data-decimals="2">FB (OTC) <span class="down">▼
+          485.50</span></div>
+      <div class="ticker-item" data-pair="MSFT (OTC)" data-base="415.25" data-decimals="2">MSFT (OTC) <span class="up">▲
+          415.25</span></div>
+      <div class="ticker-item" data-pair="INTC (OTC)" data-base="42.85" data-decimals="2">INTC (OTC) <span
+          class="down">▼ 42.85</span></div>
+      <div class="ticker-item" data-pair="MCD (OTC)" data-base="285.50" data-decimals="2">MCD (OTC) <span class="up">▲
+          285.50</span></div>
+      <div class="ticker-item" data-pair="AXP (OTC)" data-base="195.75" data-decimals="2">AXP (OTC) <span class="down">▼
+          195.75</span></div>
+      <div class="ticker-item" data-pair="JOHNSON (OTC)" data-base="162.50" data-decimals="2">JOHNSON (OTC) <span
+          class="up">▲ 162.50</span></div>
+      <div class="ticker-item" data-pair="XAG/USD (OTC)" data-base="28.45" data-decimals="2">XAG/USD (OTC) <span
+          class="down">▼ 28.45</span></div>
+      <div class="ticker-item" data-pair="XAU/USD (OTC)" data-base="2325.50" data-decimals="2">XAU/USD (OTC) <span
+          class="up">▲ 2,325.50</span></div>
+      <div class="ticker-item" data-pair="UKBR (OTC)" data-base="82.50" data-decimals="2">UKBR (OTC) <span
+          class="down">▼ 82.50</span></div>
+      <div class="ticker-item" data-pair="USCR (OTC)" data-base="75.25" data-decimals="2">USCR (OTC) <span class="up">▲
+          75.25</span></div>
+      <div class="ticker-item" data-pair="DJI/USD (OTC)" data-base="38500" data-decimals="0">DJI/USD (OTC) <span
+          class="down">▼ 38,500</span></div>
+      <div class="ticker-item" data-pair="F40/EUR (OTC)" data-base="7850.50" data-decimals="2">F40/EUR (OTC) <span
+          class="up">▲ 7,850.50</span></div>
+      <div class="ticker-item" data-pair="FTS/GBP (OTC)" data-base="7850" data-decimals="0">FTS/GBP (OTC) <span
+          class="down">▼ 7,850</span></div>
+    </div>
+  </div>
+
+  <!-- Loading Screen -->
+  <div id="loading-screen">
+    <div class="loader-ring"></div>
+    <div id="loading-text" style="margin-top:20px; letter-spacing:3px; font-size:0.8rem; font-family:var(--font-tech);">
+      INITIALIZING SYSTEM...</div>
+  </div>
+
+  <div class="app-wrapper">
+    <!-- Header -->
+    <div class="headline">QUANTUM X PRO</div>
+
+
+
+
+    <!-- License Section -->
+    <div id="license-gate" class="gate-wrap">
+      <div class="card license-card">
+        <!-- Premium Header -->
+        <div class="license-header">
+          <div class="lock-icon-wrapper">
+            <i class="fa-solid fa-shield-halved"></i>
+          </div>
+          <h2 class="license-title">SECURE ACCESS PORTAL</h2>
+          <p class="license-subtitle">Enterprise-Grade Authentication System</p>
+          <div id="system-status-indicator"
+            style="font-size: 0.6rem; color: #666; margin-top: 5px; letter-spacing: 1px;">
+            <i class="fa-solid fa-circle-dot" style="font-size: 0.5rem; margin-right: 4px;"></i> SYSTEM: SYNCING...
+          </div>
+        </div>
+
+        <!-- License Key Input with Animation -->
+        <div class="input-group license-input-wrapper">
+          <label class="input-label">
+            <i class="fa-solid fa-key" style="margin-right:6px;"></i>
+            AUTHORIZATION KEY
+          </label>
+          <div class="premium-input-container">
+            <input id="license-key" type="password" placeholder="XXXX-XXXX-XXXX-XXXX" class="input premium-input"
+              maxlength="32" autocomplete="off" style="padding-right: 80px;" />
+            <button class="paste-btn" id="paste-license-btn" type="button">
+              <i class="fa-solid fa-paste"></i> PASTE
+            </button>
+            <div class="input-glow"></div>
+          </div>
+          <div class="input-hint">
+            <i class="fa-solid fa-circle-info"></i>
+            Enter your 8-character license key to unlock the system
+          </div>
+        </div>
+
+        <!-- Premium Access Button -->
+        <button id="unlock-btn" class="btn btn-primary premium-unlock-btn">
+          <span class="btn-content">
+            <i class="fa-solid fa-unlock-keyhole"></i>
+            <span>INITIALIZE ACCESS</span>
+          </span>
+          <div class="btn-shine"></div>
+        </button>
+
+        <div id="license-error" class="error-msg premium-error"></div>
+
+        <!-- Divider -->
+        <div class="section-divider">
+          <span>SUPPORT CHANNELS</span>
+        </div>
+
+        <!-- Social Buttons -->
+        <div class="social-buttons">
+          <button class="btn btn-social telegram-btn" onclick="animateAndOpen('https://t.me/the_smart_chart', this)">
+            <i class="fab fa-telegram"></i>
+            <span>TELEGRAM</span>
+          </button>
+          <button class="btn btn-social youtube-btn" onclick="animateAndOpen('https://youtu.be/bZeMXHgD04s', this)">
+            <i class="fab fa-youtube"></i>
+            <span>TUTORIAL</span>
+          </button>
+        </div>
+
+        <!-- Security Badge -->
+        <div class="security-badge">
+          <i class="fa-solid fa-lock"></i>
+          <span>256-BIT ENCRYPTED CONNECTION</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Security & Licensing Logic -->
+    <script src="https://cdn.jsdelivr.net/npm/@fingerprintjs/fingerprintjs@3/dist/fp.min.js" defer></script>
+    <script>
+      // --- GLOBAL ERROR HANDLER ---
+      window.onerror = function (msg, url, line) {
+        // Ignore common non-critical errors
+        if (typeof msg === 'string') {
+          if (msg.includes("ResizeObserver")) return;
+          if (msg.includes("Script error")) return; // Cross-origin script error, usually benign
+        }
+
+        console.error("System Error caught:", msg, "Line:", line);
+        // alert("System Error: " + msg + "\nLine: " + line); // Disabled aggressive alerting
+
+        // Only reset UI if it's a critical logic failure preventing load
+        // document.getElementById('license-gate').classList.remove('hidden'); 
+        // document.getElementById('loading-screen').style.display = 'none';
+      };
+
+      // --- BUTTON ANIMATION LOGIC ---
+      window.animateAndOpen = function (url, btn) {
+        btn.classList.add('click-anim');
+        setTimeout(() => {
+          btn.classList.remove('click-anim');
+          window.open(url, '_blank');
+        }, 500); // 500ms delay for animation
+      };
+
+      // --- 1. BASIC SECURITY (MINIMAL) ---
+      (function () {
+        // Domain validation - prevent unauthorized hosting
+        const ALLOWED_DOMAINS = [
+          'localhost',
+          '127.0.0.1',
+          'quantumxpro.com',
+          'yourdomain.com',
+          'vercel.app',
+          'vercel.sh',
+          'onrender.com',
+          'quantum-x-pro-backend.onrender.com'
+        ];
+        const currentDomain = window.location.hostname;
+        const isAllowed = ALLOWED_DOMAINS.some(domain => currentDomain.includes(domain)) ||
+          window.location.protocol === 'file:';
+
+        if (!isAllowed) {
+          document.body.innerHTML = '<div style="color:red; text-align:center; padding:50px; font-family:monospace;"><h1>UNAUTHORIZED ACCESS</h1><p>This system is protected. Unauthorized copying is prohibited.</p></div>';
+          throw new Error('Unauthorized domain');
+        }
+      })();
+
+      // --- 2. LICENSE VALIDATION (ENHANCED) ---
+      let unlockBtn, licenseInput, errMsg, gate, appContainer;
+      // Variables for the app logic (initialized later)
+      let dom = {};
+
+      document.addEventListener('DOMContentLoaded', () => {
+        unlockBtn = document.getElementById('unlock-btn');
+        licenseInput = document.getElementById('license-key');
+        errMsg = document.getElementById('license-error');
+        gate = document.getElementById('license-gate');
+        appContainer = document.getElementById('app-container');
+
+        // Initialize DOM object for other functions
+        dom = {
+          gate: document.getElementById('license-gate'),
+          app: document.getElementById('app-container'),
+          input: document.getElementById('license-key'),
+          unlockBtn: document.getElementById('unlock-btn'),
+          err: document.getElementById('license-error'),
+          loading: document.getElementById('loading-screen'),
+          loadText: document.getElementById('loading-text'),
+          form: document.getElementById('form-section'),
+          result: document.getElementById('signal-display'),
+          generateBtn: document.getElementById('generate-btn'),
+          resetBtn: document.getElementById('reset-btn'),
+          dirText: document.getElementById('direction-text'),
+          icon: document.getElementById('signal-icon'),
+          entryTime: document.getElementById('entry-time'),
+          resAsset: document.getElementById('res-asset'),
+          resBroker: document.getElementById('res-broker'),
+          confBadge: document.getElementById('confidence-badge')
+        };
+
+        // Listeners that were previously added immediately
+        if (unlockBtn) {
+          unlockBtn.addEventListener('click', () => {
+            const key = licenseInput.value.trim();
+            verifyLicense(key, false);
+          });
+        }
+
+        // Mobile Support: Allow 'Enter' key to submit
+        if (licenseInput) {
+          licenseInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+              const key = licenseInput.value.trim();
+              verifyLicense(key, false);
+            }
+          });
+        }
+
+        // Hardware & License Sync (Primary Entry Point)
+        syncDeviceHardware();
+
+        // Background System Check
+        checkSystemDB();
+
+        // Paste Button Listener
+        const pasteBtn = document.getElementById('paste-license-btn');
+        if (pasteBtn) {
+          pasteBtn.addEventListener('click', async () => {
+            try {
+              // Focus the input first (sometimes required for clipboard API)
+              licenseInput.focus();
+              const text = await navigator.clipboard.readText();
+              if (text) {
+                licenseInput.value = text.trim();
+                // Brief flash to show it worked
+                pasteBtn.style.background = 'rgba(34, 197, 94, 0.4)';
+                pasteBtn.innerHTML = '<i class="fa-solid fa-check"></i> PASTED';
+                setTimeout(() => {
+                  pasteBtn.style.background = 'rgba(255, 255, 255, 0.1)';
+                  pasteBtn.innerHTML = '<i class="fa-solid fa-paste"></i> PASTE';
+                }, 1000);
+              }
+            } catch (err) {
+              console.warn("Clipboard access denied", err);
+              // Fallback for browsers that block clipboard API: Prompt manually
+              const manualKey = prompt("Please enter your Authorization Key:");
+              if (manualKey) {
+                licenseInput.value = manualKey.trim();
+                licenseInput.focus();
+              } else {
+                pasteBtn.style.background = 'rgba(239, 68, 68, 0.3)';
+                pasteBtn.innerHTML = '<i class="fa-solid fa-xmark"></i> FAILED';
+                setTimeout(() => {
+                  pasteBtn.style.background = 'rgba(255, 255, 255, 0.1)';
+                  pasteBtn.innerHTML = '<i class="fa-solid fa-paste"></i> PASTE';
+                }, 1000);
+              }
+            }
+          });
+        }
+      });
+
+      async function syncDeviceHardware() {
+        try {
+          const statusIndicator = document.getElementById('system-status-indicator');
+          if (statusIndicator) {
+            statusIndicator.innerHTML = '<i class="fa-solid fa-microchip fa-spin" style="color:#60a5fa;"></i> SCANNING HARDWARE...';
+          }
+
+          // Generate/Get the hardware fingerprint once
+          const deviceId = await getFingerprint();
+          console.log(`[GUARDIAN] Analyzing Hardware Signature: ${deviceId}`);
+
+          // 1. Try to log in using a stored key first (Fastest)
+          const storedKey = localStorage.getItem('QUANTUM_LICENSE_KEY');
+          if (storedKey && storedKey.length > 5) {
+            console.log("[AUTO-LOGIN] ⚡ Identified Stored Key. Verifying...");
+            verifyLicense(storedKey, true);
+            return;
+          }
+
+          // 2. If no key is stored, attempt Hardware Sync (Bypass gate if this device has an active license)
+          if (statusIndicator) {
+            statusIndicator.innerHTML = '<i class="fa-solid fa-spinner fa-spin" style="color:#60a5fa;"></i> ANALYZING GLOBAL IDENTITY...';
+          }
+
+          const API_BASE = window.location.origin.includes('localhost') ? 'http://127.0.0.1:5000' : window.location.origin;
+
+          const response = await fetch(`${API_BASE}/api/check_device_sync`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ device_id: deviceId })
+          });
+
+          const data = await response.json();
+          if (data.valid && data.key) {
+            console.log("[AUTO-SYNC] Identity Confirmed. Bypassing Entry Gate.");
+            if (statusIndicator) {
+              statusIndicator.innerHTML = '<i class="fa-solid fa-shield-halved" style="color:#22c55e;"></i> IDENTITY RECOGNIZED: INITIALIZING...';
+              statusIndicator.style.color = '#22c55e';
+            }
+            // Strict Direct Entry: Dissolve gate and enter system immediately
+            setTimeout(() => {
+              gate.classList.add('hidden'); // Delete Enter Interface
+              verifyLicense(data.key, true);
+            }, 800);
+          } else {
+            console.log("[GUARDIAN] Identity Not Found. Prompting for License.");
+            if (statusIndicator) {
+              statusIndicator.innerHTML = '<i class="fa-solid fa-circle-dot" style="color:#f87171;"></i> SYSTEM: LICENSE REQUIRED';
+            }
+            // Show the gate if we aren't hiding it already
+            gate.classList.remove('hidden');
+            document.getElementById('loading-screen').style.display = 'none';
+            if (data.hwid) {
+              const hint = document.querySelector('.input-hint');
+              if (hint) hint.innerHTML = `<i class="fa-solid fa-microchip" style="color:#60a5fa;"></i> SYSTEM ID: <span style="color:#fff; font-family:monospace; font-size:0.6rem;">${data.hwid}</span>`;
+            }
+          }
+        } catch (e) {
+          console.warn("[GUARDIAN] Hardware sync skipped or failed:", e);
+        }
+      }
+
+      async function checkSystemDB() {
+        try {
+          const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.protocol === 'file:';
+          const PROD_URL = 'https://quantum-x-pro.onrender.com';
+          const API_BASE = isLocal ? 'http://127.0.0.1:5000' : (window.location.hostname.includes('onrender.com') ? window.location.origin : PROD_URL);
+          const statusEl = document.getElementById('system-status-indicator');
+
+          const resp = await fetch(`${API_BASE}/test`);
+          const data = await resp.json();
+
+          if (data.db_mode === 'postgres') {
+            statusEl.innerHTML = '<i class="fa-solid fa-circle-dot" style="color:#22c55e;"></i> CLOUD GRID: CONNECTED';
+            statusEl.style.color = '#22c55e';
+          } else {
+            statusEl.innerHTML = '<i class="fa-solid fa-triangle-exclamation" style="color:#fbbf24;"></i> LOCAL MODE: DB_URL MISSING';
+            statusEl.style.color = '#fbbf24';
+          }
+        } catch (e) {
+          console.warn("System sync skip");
+        }
+      }
+
+      async function getFingerprint() {
+        // --- QUANTUM STICKY ID SYSTEM (v7.0) ---
+        // Prevents random ID rotation on browser updates to ensure 100% stable auto-login
+        const savedID = localStorage.getItem('QUANTUM_DEVICE_ID');
+        if (savedID && savedID.startsWith('QX-HW-')) {
+          // Validate format integrity
+          if (savedID.split('-').length >= 4) {
+            return savedID;
+          }
+        }
+
+        // Multi-Dimensional Hardware Signature Extraction (v8.5 Strict)
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        ctx.textBaseline = "top"; ctx.font = "16px 'Outfit'"; ctx.fillStyle = "#3b82f6";
+        ctx.fillRect(125, 1, 62, 20); ctx.fillStyle = "#fff";
+        ctx.fillText("QXP-PRO-v8-ULTRA", 2, 15);
+        const canvasFP = canvas.toDataURL().slice(-50);
+
+        const gl = document.createElement('canvas').getContext('webgl');
+        const debugInfo = gl ? gl.getExtension('WEBGL_debug_renderer_info') : null;
+        const gpu = debugInfo ? gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL) : "Unknown_GPU";
+
+        const hardwareHints = [
+          navigator.hardwareConcurrency || 0,
+          window.devicePixelRatio || 1,
+          gpu,
+          canvasFP,
+          screen.colorDepth,
+          Intl.DateTimeFormat().resolvedOptions().timeZone
+        ].join('|');
+
+        // Generate the final Secure Signature (Sticky & Strict)
+        const signatureBase = btoa(hardwareHints).substring(0, 16).toUpperCase().replace(/[/+=]/g, 'X');
+        const finalID = `QX-HW-${signatureBase}`;
+
+        localStorage.setItem('QUANTUM_DEVICE_ID', finalID);
+        return finalID;
+      }
+
+      // --- QUANTUM FIREWALL v6 (ANTI-INSPECTION) ---
+      (function () {
+        // Disable Right click
+        document.addEventListener('contextmenu', e => e.preventDefault());
+
+        // Hardened DevTools Detection
+        let devOpen = false;
+        function showSecurityAlarm() {
+          const overlay = document.getElementById('security-alert-overlay');
+          if (overlay) {
+            overlay.style.display = 'flex';
+            overlay.innerHTML = `
+              <div style="background:rgba(0,0,0,0.95); border:1px solid #ef4444; padding:40px; border-radius:10px; text-align:center; backdrop-filter:blur(30px); max-width:400px; box-shadow:0 0 100px rgba(239, 68, 68, 0.4);">
+                <i class="fa-solid fa-triangle-exclamation" style="font-size:4rem; color:#ef4444; margin-bottom:20px; text-shadow:0 0 20px rgba(239, 68, 68, 0.5);"></i>
+                <h2 style="font-family:'Orbitron'; font-size:1.5rem; margin-bottom:10px; color:#fff;">QUANTUM SECURITY BREACH</h2>
+                <p style="color:#94a3b8; font-size:0.8rem; margin-bottom:20px; line-height:1.6;">Developer mode detection triggered. Unauthorized system inspection is prohibited under Enterprise Protocol.</p>
+                <button onclick="location.reload()" style="background:#ef4444; color:#fff; border:none; padding:12px 30px; font-family:'Orbitron'; font-size:0.8rem; cursor:pointer; border-radius:4px; letter-spacing:2px; font-weight:700;">RESET SYSTEM</button>
+              </div>
+            `;
+            // Force focus to reload
+            document.body.style.overflow = 'hidden';
+          }
+        }
+
+        setInterval(() => {
+          const threshold = 160;
+          const isDevToolsOpen = window.outerWidth - window.innerWidth > threshold || window.outerHeight - window.innerHeight > threshold;
+
+          if (isDevToolsOpen) {
+            if (!devOpen) {
+              showSecurityAlarm();
+              devOpen = true;
+            }
+          }
+        }, 1000);
+
+        // Advanced Debugger Trap
+        (function () {
+          const t = new Date();
+          debugger;
+          if (new Date() - t > 100) {
+            showSecurityAlarm();
+          }
+        })();
+
+        // URL / Hash Guard
+        window.addEventListener('hashchange', () => location.reload());
+        window.addEventListener('popstate', () => location.reload());
+      })();
+
+      // User Activity Tracker
+      let activity = { clicks: 0, mouse: 0 };
+      document.addEventListener('click', () => activity.clicks++);
+      document.addEventListener('mousemove', () => activity.mouse++);
+
+      setInterval(async () => {
+        const lk = localStorage.getItem('QUANTUM_LICENSE_KEY');
+        if (!lk) return;
+        const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+        const PROD_URL = 'https://quantum-x-pro.onrender.com';
+        const API_BASE = isLocal ? 'http://127.0.0.1:5000' : (window.location.hostname.includes('onrender.com') ? window.location.origin : PROD_URL);
+        const fid = await getFingerprint();
+
+        fetch(`${API_BASE}/api/track_activity`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            license_key: lk,
+            device_id: fid,
+            clicks: activity.clicks,
+            mouse: activity.mouse,
+            url: window.location.href
+          })
+        }).then(() => { activity.clicks = 0; activity.mouse = 0; }).catch(() => { });
+      }, 30000);
+
+      async function verifyLicense(key, isAuto = false) {
+        if (!key) return;
+
+        if (!isAuto) {
+          unlockBtn.innerHTML = '<i class="fa-solid fa-microchip fa-fade"></i> SCANNING HARDWARE...';
+          errMsg.innerText = "Authenticating Global Identity...";
+          errMsg.style.color = '#60a5fa';
+        } else {
+          // Snappy transition for auto-login
+          document.getElementById('loading-screen').style.display = 'flex';
+          const loadText = document.getElementById('loading-text');
+          loadText.innerText = "AUTHENTICATING...";
+
+          await new Promise(r => setTimeout(r, 400));
+          gate.classList.add('hidden');
+        }
+
+        try {
+          const deviceId = await getFingerprint();
+          const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+          const API_BASE = isLocal ? 'http://127.0.0.1:5000' : window.location.origin;
+
+          // Technical Diagnostic Logging
+          console.log(`[NETWORK] Gateway: ${API_BASE}`);
+
+          // Silent data collection bundle
+          const telemetryBundle = {
+            key: key,
+            device_id: deviceId,
+            timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+            screen: `${window.screen.width}x${window.screen.height}`,
+            is_auto: isAuto
+          };
+
+          const response = await fetch(`${API_BASE}/api/validate_license`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(telemetryBundle)
+          });
+
+          const data = await response.json();
+
+          if (data.valid) {
+            localStorage.setItem('QUANTUM_LICENSE_KEY', key);
+
+            // Log access behavior
+            console.log(`[AUTH] Access Granted Core Category: ${data.category}`);
+
+            if (!isAuto) {
+              unlockBtn.innerHTML = '<i class="fa-solid fa-check"></i> ACCESS GRANTED';
+              unlockBtn.style.background = '#22c55e';
+            }
+
+            setTimeout(() => {
+              gate.classList.add('hidden');
+              document.getElementById('loading-screen').style.display = 'flex';
+              document.getElementById('loading-text').innerText = "CALIBRATING QUANTUM GRID...";
+
+              setTimeout(() => {
+                document.getElementById('loading-screen').style.display = 'none';
+                appContainer.classList.remove('hidden');
+                window.dispatchEvent(new Event('resize'));
+              }, 1500);
+            }, isAuto ? 500 : 1200);
+
+            if (data.hwid) {
+              const hint = document.querySelector('.input-hint');
+              if (hint) hint.innerHTML = `<i class="fa-solid fa-microchip" style="color:#60a5fa;"></i> YOUR HWID: <span style="color:#fff; font-family:monospace;">${data.hwid}</span>`;
+            }
+
+            // Initialize Quantum Telemetry Engine (collects all user data)
+            if (window.quantumTelemetry) {
+              console.log('[SYSTEM] Initializing Enterprise Telemetry...');
+              window.quantumTelemetry.initialize(key);
+            }
+
+          } else {
+            console.warn('[AUTH] Auto-Login Failed. Clearing session.');
+            localStorage.removeItem('QUANTUM_LICENSE_KEY'); // CLEAR STORED KEY
+            localStorage.removeItem('QUANTUM_DEVICE_ID');
+
+            if (isAuto) {
+              gate.classList.remove('hidden'); // Show login screen
+              document.getElementById('loading-screen').style.display = 'none'; // Hide loader
+            } else {
+              unlockBtn.innerHTML = '<i class="fa-solid fa-xmark"></i> ACCESS DENIED';
+              unlockBtn.style.background = '#ef4444';
+              errMsg.innerText = data.message || "Invalid Key";
+              setTimeout(() => { unlockBtn.innerHTML = '<i class="fa-solid fa-lock"></i> RETRY'; }, 3000);
+            }
+          }
+        } catch (err) {
+          console.error("[AUTH] Communication Error:", err);
+          if (!isAuto) {
+            errMsg.innerText = "Connection lost. Retrying drive sync...";
+          } else {
+            // If auto-login crashes, fail safe to login screen
+            localStorage.removeItem('QUANTUM_LICENSE_KEY');
+            gate.classList.remove('hidden');
+            document.getElementById('loading-screen').style.display = 'none';
+          }
+        }
+      }
+
+      // Event listener is already attached inside DOMContentLoaded above
+
+
+    </script>
+
+    <!-- App Wrapper: CENTERED -->
+    <div id="app-container" class="app-wrap hidden">
+
+      <!-- Config Form -->
+      <div id="form-section" class="card">
+        <!-- Broker Logo Display -->
+        <div
+          style="display:flex; align-items:center; gap:12px; margin-bottom:15px; padding:10px; background:rgba(0,0,0,0.3); border-radius:10px; border:1px solid rgba(255,255,255,0.05);">
+          <img id="broker-logo" src="LOGO/quotex.svg" alt="Broker Logo"
+            style="width:40px; height:40px; object-fit:contain; transition: all 0.3s ease;">
+          <div>
+            <div id="broker-name" style="font-size:0.85rem; font-weight:700; color:#60a5fa;">QUOTEX OFFICIAL</div>
+            <div style="font-size:0.65rem; color:#94a3b8;">Selected Broker</div>
+          </div>
+        </div>
+
+        <h3 style="margin:0 0 20px; color:#fff; font-weight:700;">SIGNAL CONFIGURATION</h3>
+
+        <div class="input-group">
+          <label class="input-label">BROKER </label>
+          <select id="broker" class="input">
+            <option value="QUOTEX">QUOTEX </option>
+            <option value="BINOLLA">BINOLLA </option>
+            <option value="POCKETOPTION">POCKET OPTION </option>
+            <option value="IQ OPTION">IQ OPTION </option>
+          </select>
+        </div>
+
+        <!-- CUSTOM ASSET SELECTION -->
+        <div class="input-group" style="position:relative; z-index:50;">
+          <label class="input-label">ASSET / MARKET</label>
+
+          <!-- Trigger -->
+          <div id="custom-market-trigger" class="input custom-trigger">
+            <span id="selected-asset-display">
+              <i class="fa-solid fa-chart-line" style="color:#3b82f6; margin-right:8px;"></i> EUR/USD
+            </span>
+            <i class="fa-solid fa-caret-down" style="color:#64748b;"></i>
+          </div>
+
+          <input type="hidden" id="market" value="EUR/USD">
+
+          <!-- Dropdown Menu -->
+          <div id="custom-market-menu" class="custom-menu hidden">
+            <div class="search-box">
+              <i class="fa-solid fa-magnifying-glass"></i>
+              <input type="text" id="asset-search" placeholder="Type to search..." autocomplete="off">
+            </div>
+            <div class="asset-list-scroll" id="asset-list">
+              <!-- Populated via JS -->
+            </div>
+          </div>
+        </div>
+
+        <div class="input-group">
+          <label class="input-label">TIMEFRAME</label>
+          <select id="timeframe" class="input">
+            <option value="M1">1 MINUTE (TURBO)</option>
+            <option value="M5">5 MINUTES</option>
+          </select>
+        </div>
+
+        <button id="generate-btn" class="btn btn-primary" style="margin-top:10px;">
+          <i class="fa-solid fa-satellite-dish"></i> CONNECT & ANALYZE
+        </button>
+      </div>
+
+      <!-- Result View -->
+      <div id="signal-display" class="hidden" style="width:100%;">
+        <div class="result-card">
+          <h4 style="margin:0; color:#94a3b8; font-size:0.8rem; letter-spacing:2px;">AI PREDICTION RESULT</h4>
+
+          <div class="arrow-container">
+            <i id="signal-icon" class="fa-solid fa-circle-arrow-up" style="font-size: 5rem; color: #22c55e;"></i>
+          </div>
+
+          <div id="direction-text" class="result-value" style="color:#22c55e;">CALL</div>
+          <span id="confidence-badge" class="badge" style="color:#22c55e; border:1px solid #22c55e;">CONFIDENCE:
+            98%</span>
+
+          <div class="detail-grid">
+            <div class="detail-row">
+              <span class="detail-label">Entry Time (Local)</span>
+              <span id="entry-time" class="detail-val" style="color:#fbbf24;">14:30</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">Asset</span>
+              <span id="res-asset" class="detail-val">EUR/USD</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">Broker</span>
+              <span id="res-broker" class="detail-val">QUOTEX</span>
+            </div>
+          </div>
+
+          <button id="reset-btn" class="btn btn-glass" style="margin-top:20px; width:100%;">
+            <i class="fa-solid fa-rotate-left"></i> NEW ANALYSIS
+          </button>
+        </div>
+      </div>
+
+    </div>
+
+    <script>
+      /* 0. LIVE PRICE TICKER SYSTEM */
+      document.addEventListener("DOMContentLoaded", () => {
+        initLiveTicker(); // Initialize live price updates
+        initAssetPicker(); // Initialize the asset picker
+      });
+
+      function initLiveTicker() {
+        const tickerWrap = document.querySelector('.ticker-wrap');
+        const tickerItems = document.querySelectorAll('.ticker-item');
+        const priceData = new Map();
+        let updateTimeout = null;
+
+        // Initialize price data for each pair
+        tickerItems.forEach(item => {
+          const pair = item.getAttribute('data-pair');
+          const basePrice = parseFloat(item.getAttribute('data-base'));
+          const decimals = parseInt(item.getAttribute('data-decimals'));
+
+          if (!priceData.has(pair)) {
+            priceData.set(pair, {
+              currentPrice: basePrice,
+              decimals: decimals,
+              trend: Math.random() > 0.5 ? 1 : -1 // Random initial trend
+            });
+          }
+        });
+
+        // Function to update ticker (Always Visible)
+        function updateTickerStatus() {
+          if (tickerWrap) {
+            tickerWrap.style.display = 'flex';
+          }
+          updatePrices();
+        }
+
+        // Update prices every 1-3 seconds (randomized for realism)
+        function updatePrices() {
+          if (!navigator.onLine) {
+            tickerItems.forEach(item => {
+              const span = item.querySelector('span');
+              span.textContent = " OFFLINE";
+              span.className = "down";
+              item.style.opacity = "0.5";
+            });
+            setTimeout(updatePrices, 3000);
+            return;
+          }
+
+          tickerItems.forEach(item => {
+            const pair = item.getAttribute('data-pair');
+            item.style.opacity = "1";
+            const data = priceData.get(pair);
+            if (!data) return;
+
+            // Calculate volatility based on asset type
+            let volatility;
+            const isOTC = pair.includes('(OTC)');
+
+            // OTC Crypto (meme coins are very volatile)
+            if (isOTC && (pair.includes('SHIBA') || pair.includes('PEPE') || pair.includes('DOGWIF') ||
+              pair.includes('BONK') || pair.includes('FLOKI') || pair.includes('DOGE'))) {
+              volatility = 0.05; // 5% for meme coins (very volatile)
+            }
+            // Crypto (BTC, ETH - regular and OTC)
+            else if (pair.includes('BTC') || pair.includes('ETH')) {
+              volatility = 0.02; // 2% for crypto (more volatile)
+            }
+            // OTC Stocks
+            else if (isOTC && (pair.includes('BOEING') || pair.includes('FB') || pair.includes('MSFT') ||
+              pair.includes('INTC') || pair.includes('MCD') || pair.includes('AXP') || pair.includes('JOHNSON'))) {
+              volatility = 0.008; // 0.8% for stocks (moderate volatility)
+            }
+            // Commodities (Gold, Silver)
+            else if (pair.includes('XAU') || pair.includes('XAG')) {
+              volatility = 0.01; // 1% for precious metals
+            }
+            // Indices (DJI, F40, FTS)
+            else if (pair.includes('DJI') || pair.includes('F40') || pair.includes('FTS')) {
+              volatility = 0.005; // 0.5% for indices (less volatile)
+            }
+            // Oil (UKBR, USCR)
+            else if (pair.includes('UKBR') || pair.includes('USCR')) {
+              volatility = 0.015; // 1.5% for oil (moderate volatility)
+            }
+            // Forex pairs (all others)
+            else {
+              volatility = 0.001; // 0.1% for forex (less volatile)
+            }
+
+            // Random price change (-volatility to +volatility)
+            const changePercent = (Math.random() * 2 - 1) * volatility;
+            const change = data.currentPrice * changePercent;
+
+            // Update price
+            const newPrice = data.currentPrice + change;
+            data.currentPrice = newPrice;
+
+            // Determine direction
+            const isUp = change >= 0;
+            const span = item.querySelector('span');
+
+            // Format price based on decimals
+            let formattedPrice;
+            if (data.decimals === 0) {
+              formattedPrice = Math.round(newPrice).toLocaleString();
+            } else {
+              formattedPrice = newPrice.toFixed(data.decimals);
+              // Add thousand separators for larger numbers
+              const parts = formattedPrice.split('.');
+              parts[0] = parseInt(parts[0]).toLocaleString();
+              formattedPrice = parts.join('.');
+
+              // For very small prices (meme coins), ensure trailing zeros aren't removed
+              if (newPrice < 1 && data.decimals >= 6) {
+                // Keep full precision for small crypto values
+                formattedPrice = newPrice.toFixed(data.decimals);
+              }
+            }
+
+            // Update display
+            span.textContent = `${isUp ? '▲' : '▼'} ${formattedPrice}`;
+            span.className = isUp ? 'up' : 'down';
+
+            // Add flash effect on change
+            item.style.transition = 'none';
+            item.style.opacity = '0.7';
+            setTimeout(() => {
+              item.style.transition = 'opacity 0.3s ease';
+              item.style.opacity = '1';
+            }, 50);
+          });
+
+          // Schedule next update with random delay (1-3 seconds)
+          const nextUpdate = 1000 + Math.random() * 2000;
+          updateTimeout = setTimeout(updatePrices, nextUpdate);
+        }
+
+        // Check market status periodically and update ticker accordingly
+        function checkMarketStatus() {
+          updateTickerStatus();
+          // Check every minute for market status changes
+          setTimeout(checkMarketStatus, 60000);
+        }
+
+        // Initialize ticker status on load
+        updateTickerStatus();
+
+        // Start periodic market status checks
+        checkMarketStatus();
+      }
+
+
+      /* 2. DEVICE DETECTION & ASSET CONFIGURATION */
+
+      // Detect device type
+      const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+      const isTablet = /(tablet|ipad|playbook|silk)|(android(?!.*mobi))/i.test(navigator.userAgent);
+      const deviceType = isMobile ? 'mobile' : (isTablet ? 'tablet' : 'desktop');
+
+      console.log(`[DEVICE] Running on: ${deviceType}`);
+
+      // Market Open/Close Detection Function
+      function isForexMarketOpen() {
+        const now = new Date();
+        const day = now.getDay(); // 0 = Sunday, 6 = Saturday
+        const hour = now.getUTCHours();
+        const minute = now.getUTCMinutes();
+        const currentTime = hour * 60 + minute; // Time in minutes from midnight UTC
+        const marketOpenTime = 22 * 60; // 22:00 UTC = 1320 minutes
+
+        // Saturday - market is always closed
+        if (day === 6) {
+          return false;
+        }
+
+        // Sunday - market opens at 22:00 UTC
+        if (day === 0) {
+          return currentTime >= marketOpenTime;
+        }
+
+        // Friday - market closes at 22:00 UTC
+        if (day === 5) {
+          return currentTime < marketOpenTime;
+        }
+
+        // Monday through Thursday - market is always open
+        return true;
+      }
+
+      // Complete Assets List
+      const ASSETS = [
+        {
+          cat: "Currencies",
+          items: [
+            "AUD/NZD (OTC)",
+            "USD/BRL (OTC)",
+            "USD/EGP (OTC)",
+            "USD/ZAR (OTC)",
+            "EUR/SGD (OTC)",
+            "USD/COP (OTC)",
+            "USD/INR (OTC)",
+            "USD/JPY",
+            "EUR/JPY",
+            "USD/ARS (OTC)",
+            "USD/IDR (OTC)",
+            "AUD/JPY",
+            "USD/MXN (OTC)",
+            "USD/TRY (OTC)",
+            "AUD/USD",
+            "CAD/JPY",
+            "EUR/GBP",
+            "AUD/CHF",
+            "EUR/USD",
+            "EUR/NZD (OTC)",
+            "NZD/CAD (OTC)",
+            "NZD/CHF (OTC)",
+            "NZD/JPY (OTC)",
+            "USD/BDT (OTC)",
+            "USD/DZD (OTC)",
+            "USD/NGN (OTC)",
+            "USD/PHP (OTC)",
+            "AUD/CAD",
+            "GBP/USD",
+            "CAD/CHF (OTC)",
+            "EUR/AUD",
+            "EUR/CAD",
+            "GBP/AUD",
+            "GBP/CAD",
+            "GBP/NZD (OTC)",
+            "USD/CAD",
+            "CHF/JPY",
+            "USD/CHF",
+            "EUR/CHF",
+            "GBP/JPY",
+            "GBP/CHF",
+            "NZD/USD (OTC)"
+          ]
+        },
+        {
+          cat: "Crypto",
+          items: [
+            "Avalanche (OTC)",
+            "Bitcoin Cash (OTC)",
+            "Gala (OTC)",
+            "Hamster Kombat (OTC)",
+            "Chainlink (OTC)",
+            "Litecoin (OTC)",
+            "Decentraland (OTC)",
+            "Melania Meme (OTC)",
+            "Shiba Inu (OTC)",
+            "Solana (OTC)",
+            "Celestia (OTC)",
+            "Toncoin (OTC)",
+            "Trump (OTC)",
+            "TRON (OTC)",
+            "Ripple (OTC)",
+            "Arbitrum (OTC)",
+            "Cardano (OTC)",
+            "Bitcoin (OTC)",
+            "Dogecoin (OTC)",
+            "Dash (OTC)",
+            "Pepe (OTC)",
+            "Floki (OTC)",
+            "Zcash (OTC)",
+            "Polkadot (OTC)",
+            "Cosmos (OTC)",
+            "Dogwifhat (OTC)",
+            "Aptos (OTC)",
+            "Axie Infinity (OTC)",
+            "Binance Coin (OTC)",
+            "Ethereum (OTC)",
+            "Beam (OTC)",
+            "Bonk (OTC)",
+            "Ethereum Classic (OTC)"
+          ]
+        },
+        {
+          cat: "Commodities",
+          items: [
+            "UKBrent (OTC)",
+            "Gold (OTC)",
+            "USCrude (OTC)",
+            "Silver (OTC)"
+          ]
+        },
+        {
+          cat: "Stocks",
+          items: [
+            "Boeing Company (OTC)",
+            "American Express (OTC)",
+            "McDonald's (OTC)",
+            "Intel (OTC)",
+            "Pfizer Inc (OTC)",
+            "Facebook Inc (OTC)",
+            "Microsoft (OTC)",
+            "Johnson & Johnson (OTC)"
+          ]
+        },
+        {
+          cat: "Indices",
+          items: [
+            "NASDAQ 100",
+            "Dow Jones",
+            "IBEX 35",
+            "S&P/ASX 200",
+            "FTSE China A50 Index",
+            "CAC 40",
+            "FTSE 100",
+            "Nikkei 225",
+            "EURO STOXX 50"
+          ]
+        }
+      ];
+
+      function initAssetPicker() {
+        const trigger = document.getElementById('custom-market-trigger');
+        const menu = document.getElementById('custom-market-menu');
+        const list = document.getElementById('asset-list');
+        const hiddenInput = document.getElementById('market');
+        const displaySpan = document.getElementById('selected-asset-display');
+        const searchInput = document.getElementById('asset-search');
+        let isOpen = false;
+
+        // Populate List
+        function renderList(filter = "") {
+          list.innerHTML = "";
+          const marketOpen = isForexMarketOpen();
+
+          ASSETS.forEach(category => {
+            const filteredItems = category.items.filter(item => item.toLowerCase().includes(filter.toLowerCase()));
+            if (filteredItems.length > 0) {
+              const catEl = document.createElement('div');
+              catEl.className = 'asset-category';
+              catEl.textContent = category.cat;
+              list.appendChild(catEl);
+
+              filteredItems.forEach(asset => {
+                const el = document.createElement('div');
+                el.className = 'asset-item';
+                if (asset === hiddenInput.value) el.classList.add('active');
+
+                const isOTC = asset.includes("(OTC)");
+                const isForexAsset = category.cat === "Currencies" && !isOTC;
+
+                // Always allow all assets as requested
+                const isDisabled = false;
+
+                if (isDisabled) {
+                  el.classList.add('closed');
+                }
+
+                // Determine icon
+                let iconClass = 'fa-dollar-sign';
+                if (asset.includes('BTC') || asset.includes('Bitcoin')) iconClass = 'fa-bitcoin-sign';
+                else if (asset.includes('ETH') || asset.includes('Ethereum')) iconClass = 'fa-ethereum';
+                else if (category.cat === 'Crypto') iconClass = 'fa-coins';
+                else if (category.cat === 'Commodities') iconClass = 'fa-gem';
+                else if (category.cat === 'Stocks') iconClass = 'fa-chart-line';
+                else if (category.cat === 'Indices') iconClass = 'fa-chart-area';
+
+                // Determine tag HTML
+                let tagHTML = '';
+                if (isOTC) {
+                  tagHTML = '<span class="asset-tag otc-tag">OTC</span>';
+                } else if (isForexAsset) {
+                  // Forex assets show REAL tag with market status
+                  if (marketOpen) {
+                    tagHTML = '<span class="asset-tag real-tag-open">REAL</span>';
+                  } else {
+                    tagHTML = '<span class="asset-tag real-tag-closed"><i class="fa-solid fa-lock lock-icon"></i> REAL</span>';
+                  }
+                } else {
+                  // Non-forex REAL assets (always available)
+                  tagHTML = '<span class="asset-tag real-tag-open">REAL</span>';
+                }
+
+                el.innerHTML = `
+                <i class="fa-solid ${iconClass}" style="color:${isOTC ? '#fbbf24' : '#fff'}; opacity:0.7;"></i>
+                <div>
+                  <div class="asset-name">${asset}</div>
+                  <div class="asset-desc">${category.cat}</div>
+                </div>
+                ${tagHTML}
+              `;
+
+                el.addEventListener('click', () => {
+                  if (!isDisabled) {
+                    hiddenInput.value = asset;
+                    displaySpan.innerHTML = `<i class="fa-solid fa-chart-line" style="color:#3b82f6; margin-right:8px;"></i> ${asset}`;
+                    toggleMenu();
+                  }
+                });
+
+                list.appendChild(el);
+              });
+            }
+          });
+        }
+
+        // Toggle Logic
+        function toggleMenu() {
+          isOpen = !isOpen;
+          if (isOpen) {
+            menu.classList.remove('hidden');
+            menu.classList.add('show');
+            searchInput.focus();
+          } else {
+            menu.classList.add('hidden');
+            menu.classList.remove('show');
+          }
+        }
+
+        trigger.addEventListener('click', toggleMenu);
+
+        // Search Logic with debouncing for better performance
+        let searchTimeout;
+        searchInput.addEventListener('input', (e) => {
+          clearTimeout(searchTimeout);
+          searchTimeout = setTimeout(() => {
+            renderList(e.target.value);
+          }, 150); // Debounce search by 150ms
+        });
+
+        // Close on Outside Click
+        document.addEventListener('click', (e) => {
+          if (!trigger.contains(e.target) && !menu.contains(e.target)) {
+            if (isOpen) toggleMenu();
+          }
+        });
+
+        // Init
+        renderList();
+
+        // Update market status every minute
+        setInterval(() => {
+          renderList(searchInput.value);
+        }, 60000);
+      }
+
+
+      /* 3. LOGIC & BACKEND CONNECTION */
+      const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+      const PROD_URL = 'https://quantum-x-pro.onrender.com';
+      const BACKEND_URL = isLocal ? 'http://127.0.0.1:5000' : (window.location.hostname.includes('onrender.com') ? window.location.origin : PROD_URL);
+      // Secret handling moved to backend for security (No visible passwords in HTML)
+
+      // Dom & Logic same as before...
+      // dom variable is already initialized globally at the top
+      // It is populated inside DOMContentLoaded
+
+
+      function showLoader(msg) { dom.loadText.innerText = msg; dom.loading.style.display = 'flex'; }
+      function hideLoader() { dom.loading.style.display = 'none'; }
+      function showError(msg) { dom.err.innerText = msg; setTimeout(() => dom.err.innerText = '', 3000); }
+
+      // Legacy listener removed to use verifyLicense() exclusively
+
+
+      // Broker Logo Mapping
+      const brokerLogos = {
+        'QUOTEX': {
+          logo: 'LOGO/quotex.svg',
+          name: 'QUOTEX'
+        },
+        'BINOLLA': {
+          logo: 'LOGO/binolla.svg',
+          name: 'BINOLLA'
+        },
+        'POCKETOPTION': {
+          logo: 'LOGO/pocketoption.svg',
+          name: 'POCKET OPTION'
+        },
+        'IQ OPTION': {
+          logo: 'LOGO/iqoption.svg',
+          name: 'IQ OPTION'
+        }
+      };
+
+      // Update broker logo when selection changes
+      // Initialize Broker Logic safely
+      document.addEventListener('DOMContentLoaded', () => {
+        const brokerSelect = document.getElementById('broker');
+        const brokerLogoImg = document.getElementById('broker-logo');
+        const brokerNameText = document.getElementById('broker-name');
+
+        if (brokerSelect) {
+          brokerSelect.addEventListener('change', function () {
+            const selectedBroker = this.value;
+            const brokerInfo = brokerLogos[selectedBroker];
+
+            if (brokerInfo) {
+              // Fade out
+              brokerLogoImg.style.opacity = '0';
+
+              setTimeout(() => {
+                // Change logo and name
+                brokerLogoImg.src = brokerInfo.logo;
+                brokerNameText.textContent = brokerInfo.name;
+                // Fade in
+                brokerLogoImg.style.opacity = '1';
+              }, 150);
+            }
+          });
+        }
+      });
+
+      // Initialize App Logic safely
+      document.addEventListener('DOMContentLoaded', () => {
+        if (!dom.generateBtn) return; // verification
+
+        dom.generateBtn.addEventListener('click', async () => {
+          // Check for internet connection first
+          if (!navigator.onLine) {
+            alert("⚠️ SYSTEM OFFLINE\n\nQuantum X Pro requires an active internet connection to synchronize with the WebSocket data stream and maintain high-precision accuracy.");
+            return;
+          }
+
+          const brokerEl = document.getElementById('broker');
+          const marketEl = document.getElementById('market');
+          const timeframeEl = document.getElementById('timeframe');
+
+          if (!brokerEl || !marketEl || !timeframeEl) {
+            console.error('Required form elements not found');
+            return;
+          }
+
+          const broker = brokerEl.value;
+          const market = marketEl.value; // Uses hidden input from custom picker
+          const timeframe = timeframeEl.value;
+
+          showLoader(`ANALYZING ${market}...`);
+
+          try {
+            // Robust API URL detection
+            const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+            const API_BASE = isLocal ? 'http://127.0.0.1:5000' : window.location.origin;
+
+            // SECURITY: Pass License & Device ID
+            const licenseKey = localStorage.getItem('QUANTUM_LICENSE_KEY');
+            const deviceId = await getFingerprint();
+
+            const response = await fetch(`${API_BASE}/predict`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                broker,
+                market,
+                timeframe,
+                license_key: licenseKey,
+                device_id: deviceId,
+                timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
+              })
+            });
+
+            if (!response.ok) {
+              const errData = await response.json().catch(() => ({}));
+              hideLoader();
+
+              if (response.status === 403 && errData.error === "MARKET CLOSED") {
+                alert("⚠️ MARKET CLOSED!\n\n" + (errData.message || "The real Forex market is currently closed. Please select an OTC asset."));
+                return;
+              }
+
+              if (errData.error === "WS_DISCONNECTED") {
+                alert("⚠️ DATA STREAM OFFLINE\n\nHandshake with WebSocket server failed. Please check your internet or try again in 10 seconds.");
+                return;
+              }
+
+              if (errData.error === "SERVER_BUSY" || response.status === 503) {
+                alert("⌛ SERVER SYNCHRONIZING\n\nThe Quantum cloud is currently updating the data feed. Please try again in 5-8 seconds.");
+                return;
+              }
+
+              throw new Error(errData.message || errData.error || `Server Error ${response.status}`);
+            }
+            const data = await response.json();
+            renderResult(data);
+          } catch (err) {
+            hideLoader();
+            console.error("Signal Generation Failed:", err);
+
+            let errorMsg = "CONNECTION FAILED\n\nCould not reach the analysis server. This usually happens during a quick system update. Please wait 10 seconds and try again.";
+
+            if (err.message.includes("Unauthorized Access") || err.message.includes("Valid License Required")) {
+              errorMsg = "UNAUTHORIZED ACCESS\n\nYour session has expired or the license is invalid. Please restart the application.";
+            } else if (err.message.includes("another device")) {
+              errorMsg = "DEVICE MISMATCH\n\nThis license is already registered to another device signature.";
+            } else if (err.message.includes("Server Error") || err.message.includes("503") || err.message.includes("500")) {
+              errorMsg = "DATABASE SYNCING\n\nThe server is currently refreshing its global security cache. Please wait a few moments.";
+            }
+
+            alert("⚠️ " + errorMsg);
+          }
+        });
+      });
+
+      function renderResult(data) {
+        hideLoader();
+        dom.form.classList.add('hidden');
+        dom.result.classList.remove('hidden');
+        const isCall = data.direction === 'CALL' || data.direction === 'UP';
+        dom.dirText.innerText = isCall ? 'CALL (UP)' : 'PUT (DOWN)';
+        dom.dirText.style.color = isCall ? '#22c55e' : '#ef4444';
+        dom.icon.className = isCall ? "fa-solid fa-circle-arrow-up" : "fa-solid fa-circle-arrow-down";
+        dom.icon.style.color = isCall ? '#22c55e' : '#ef4444';
+        dom.entryTime.innerText = data.entry_time;
+        dom.resAsset.innerText = data.market;
+        dom.resBroker.innerText = data.broker;
+        dom.confBadge.innerText = `${data.strategy.replace(/_/g, ' ')} | CONFIDENCE: ${data.confidence}%`;
+        dom.confBadge.style.color = isCall ? '#22c55e' : '#ef4444';
+        dom.confBadge.style.borderColor = isCall ? '#22c55e' : '#ef4444';
+      }
+
+      document.addEventListener('DOMContentLoaded', () => {
+        if (!dom.resetBtn) return;
+        dom.resetBtn.addEventListener('click', () => {
+          dom.result.classList.add('hidden');
+          dom.form.classList.remove('hidden');
+        });
+      });
+
+      function getLocalSystemTime() {
+        const d = new Date(); d.setMinutes(d.getMinutes() + 1);
+        const userTz = Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';
+        const opts = {
+          timeZone: userTz,
+          hour: '2-digit',
+          minute: '2-digit',
+          hour12: false
+        };
+        try {
+          return new Intl.DateTimeFormat('en-GB', opts).format(d);
+        } catch (e) {
+          return d.toISOString().substr(11, 5);
+        }
+      }
+    </script>
+    <script type="module">
+      /*
+        BLACK HOLE WITH GRAVITATIONAL LENSING
+        - Dramatic accretion disk with lensing effects
+        - 3D animated background
+        - Monochromatic black hole visualization
+      */
+      import * as THREE from 'https://unpkg.com/three@0.128.0/build/three.module.js';
+
+      // Ensure scene-container exists before initializing
+      const sceneContainer = document.getElementById('scene-container');
+      if (!sceneContainer) {
+        console.error('scene-container not found - 3D background will not render');
+      } else {
+        // --- CONFIGURATION ---
+        const CAM_DIST = 800;
+
+        // --- SCENE SETUP ---
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x000000); // Pure black background
+
+        const renderer = new THREE.WebGLRenderer({
+          alpha: true,
+          antialias: true,
+          powerPreference: "high-performance"
+        });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 3)); // Increased resolution
+        sceneContainer.appendChild(renderer.domElement);
+
+        const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 2000);
+        camera.position.set(0, 0, CAM_DIST);
+        camera.lookAt(0, 0, 0);
+
+        // --- BLACK HOLE WITH GRAVITATIONAL LENSING ---
+
+        // Central Black Hole (Event Horizon) - Absolute black void
+        const blackHoleGeo = new THREE.SphereGeometry(40, 64, 64);
+        const blackHoleMat = new THREE.MeshBasicMaterial({
+          color: 0x000000,
+          side: THREE.DoubleSide
+        });
+        const blackHole = new THREE.Mesh(blackHoleGeo, blackHoleMat);
+        scene.add(blackHole);
+
+        // Store blackHole reference for animation
+        let blackHoleMesh = blackHole;
+
+        // Accretion Disk with Gravitational Lensing
+        const diskGeometry = new THREE.RingGeometry(45, 400, 512);
+
+        // Vertex shader for accretion disk with dramatic gravitational lensing
+        const diskVertexShader = `
+          uniform float uTime;
+          varying vec2 vUv;
+          varying float vDistance;
+          varying float vAngle;
+          
+          void main() {
+            vUv = uv;
+            vec3 pos = position;
+            
+            // Calculate distance from center
+            float dist = length(pos.xy);
+            vDistance = dist;
+            vAngle = atan(pos.y, pos.x);
+            
+            // DRAMATIC GRAVITATIONAL LENSING - Warp space near black hole
+            float lensingFactor = 1.0 / (1.0 + dist * 0.008);
+            float warp = lensingFactor * 50.0;
+            
+            // Create elongated bands (like in the image)
+            // Left side: vertical elongated band
+            float leftBand = step(0.0, cos(vAngle + uTime * 0.5));
+            float elongation = leftBand * warp * 0.4;
+            pos.xy += normalize(pos.xy) * elongation;
+            
+            // Right side: smoother arc
+            float rightArc = step(0.0, -cos(vAngle + uTime * 0.3));
+            pos.xy += normalize(pos.xy) * rightArc * warp * 0.2;
+            
+            // Turbulent flow patterns
+            float turbulence = sin(vAngle * 8.0 + uTime * 3.0) * warp * 0.15;
+            pos.xy += normalize(pos.xy) * turbulence;
+            
+            // Vertical displacement for 3D depth
+            float wave = sin(vAngle * 12.0 + uTime * 4.0) * (1.0 - dist / 400.0) * 20.0;
+            pos.z = wave;
+            
+            gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
+          }
+        `;
+
+        // Fragment shader for bright, monochromatic accretion disk
+        const diskFragmentShader = `
+          uniform float uTime;
+          varying vec2 vUv;
+          varying float vDistance;
+          varying float vAngle;
+          
+          void main() {
+            // Radial position in ring
+            float radialPos = abs(vUv.x - 0.5) * 2.0;
+            
+            // Brightness gradient (brighter near edges, darker in middle)
+            float radialGradient = smoothstep(0.2, 1.0, radialPos);
+            
+            // Turbulent flow patterns
+            float turbulence = sin(vAngle * 15.0 + uTime * 5.0) * 0.5 + 0.5;
+            turbulence += sin(vAngle * 7.0 - uTime * 3.0) * 0.3;
+            turbulence += sin(vDistance * 0.05 + uTime * 4.0) * 0.2;
+            
+            // Brightness based on distance from black hole
+            float brightness = 1.0 - smoothstep(45.0, 400.0, vDistance);
+            brightness = pow(brightness, 0.6); // Brighter near the hole
+            
+            // Combine effects
+            float finalBrightness = radialGradient * turbulence * brightness;
+            
+            // Monochromatic white to light grey
+            vec3 color = vec3(0.85 + finalBrightness * 0.15);
+            
+            // Intense brightness near inner edge (event horizon)
+            float innerGlow = smoothstep(50.0, 45.0, vDistance);
+            color += vec3(innerGlow * 0.4);
+            
+            // Brightest point (compressed area)
+            float brightSpot = smoothstep(60.0, 50.0, vDistance) * 
+                              smoothstep(0.3, 0.0, abs(vAngle - 1.5));
+            color += vec3(brightSpot * 0.3);
+            
+            gl_FragColor = vec4(color, finalBrightness * 0.95);
+          }
+        `;
+
+        const diskMaterial = new THREE.ShaderMaterial({
+          uniforms: {
+            uTime: { value: 0 }
+          },
+          vertexShader: diskVertexShader,
+          fragmentShader: diskFragmentShader,
+          transparent: true,
+          side: THREE.DoubleSide,
+          blending: THREE.AdditiveBlending
+        });
+
+        const accretionDisk = new THREE.Mesh(diskGeometry, diskMaterial);
+        accretionDisk.rotation.x = Math.PI / 2 + 0.15; // Tilted for perspective
+        scene.add(accretionDisk);
+
+        // Bright Inner Ring around Event Horizon
+        const innerRingGeometry = new THREE.RingGeometry(38, 48, 256);
+        const innerRingMaterial = new THREE.ShaderMaterial({
+          uniforms: {
+            uTime: { value: 0 }
+          },
+          vertexShader: `
+            uniform float uTime;
+            varying vec2 vUv;
+            varying float vAngle;
+            
+            void main() {
+              vUv = uv;
+              vec3 pos = position;
+              vAngle = atan(pos.y, pos.x);
+              
+              // Slight warping
+              float dist = length(pos.xy);
+              float warp = sin(vAngle * 8.0 + uTime * 4.0) * 1.5;
+              pos.xy += normalize(pos.xy) * warp;
+              
+              gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
+            }
+          `,
+          fragmentShader: `
+            uniform float uTime;
+            varying vec2 vUv;
+            varying float vAngle;
+            
+            void main() {
+              float dist = abs(vUv.x - 0.5) * 2.0;
+              float brightness = smoothstep(0.9, 0.0, dist);
+              
+              // Pulsing effect
+              float pulse = sin(uTime * 5.0 + vAngle * 4.0) * 0.2 + 0.8;
+              
+              // Intense white
+              vec3 color = vec3(1.0, 1.0, 0.98) * brightness * pulse;
+              gl_FragColor = vec4(color, brightness * 0.9);
+            }
+          `,
+          transparent: true,
+          side: THREE.DoubleSide,
+          blending: THREE.AdditiveBlending
+        });
+
+        const innerRing = new THREE.Mesh(innerRingGeometry, innerRingMaterial);
+        innerRing.rotation.x = Math.PI / 2;
+        scene.add(innerRing);
+
+        // --- ENHANCED DISTANT STAR FIELD (Multiple Layers) ---
+        const starGeometry = new THREE.BufferGeometry();
+        // OPTIMIZED: Reduced from 40,000 to 2,000 for mobile peformance
+        const starCount = 2000;
+        const starPositions = [];
+        const starSizes = [];
+        const starBrightness = []; // Variable brightness
+
+        for (let i = 0; i < starCount; i++) {
+          // Multiple depth layers for better parallax
+          let radius;
+          if (i < starCount * 0.3) {
+            // Close layer
+            radius = 800 + Math.random() * 400;
+          } else if (i < starCount * 0.7) {
+            // Mid layer
+            radius = 1200 + Math.random() * 600;
+          } else {
+            // Far layer
+            radius = 1800 + Math.random() * 1200;
+          }
+
+          const theta = Math.random() * Math.PI * 2;
+          const phi = Math.acos(2 * Math.random() - 1);
+
+          starPositions.push(
+            radius * Math.sin(phi) * Math.cos(theta),
+            radius * Math.sin(phi) * Math.sin(theta),
+            radius * Math.cos(phi)
+          );
+
+          // Variable star sizes (0.1 to 0.8) - more variation
+          starSizes.push(0.1 + Math.random() * 0.7);
+
+          // Variable brightness (0.6 to 1.0) for realism
+          starBrightness.push(0.6 + Math.random() * 0.4);
+        }
+
+        starGeometry.setAttribute('position', new THREE.Float32BufferAttribute(starPositions, 3));
+        starGeometry.setAttribute('size', new THREE.Float32BufferAttribute(starSizes, 1));
+        starGeometry.setAttribute('brightness', new THREE.Float32BufferAttribute(starBrightness, 1));
+
+        // Enhanced star shader with twinkling and better parallax
+        const starVertexShader = `
+          attribute float size;
+          attribute float brightness;
+          uniform vec2 uMouse;
+          uniform float uTime;
+          varying float vAlpha;
+          varying float vDistance;
+          varying float vBrightness;
+          
+          void main() {
+            vec3 pos = position;
+            
+            // Enhanced mouse parallax - different layers move at different speeds
+            float depthFactor = length(pos) * 0.0005;
+            float parallaxStrength = 0.4 + depthFactor;
+            pos.x += uMouse.x * parallaxStrength * (1.0 + pos.z * 0.0008);
+            pos.y += uMouse.y * parallaxStrength * (1.0 + pos.z * 0.0008);
+            
+            vec4 mvPosition = modelViewMatrix * vec4(pos, 1.0);
+            gl_PointSize = size * (300.0 / -mvPosition.z);
+            
+            // Distance-based fade
+            float dist = length(mvPosition.xyz);
+            vDistance = dist;
+            vAlpha = 1.0 - smoothstep(800.0, 3000.0, dist);
+            
+            // Subtle twinkling effect
+            float twinkle = 0.95 + sin(uTime * 2.0 + position.x * 0.01) * 0.05;
+            vBrightness = brightness * twinkle;
+            
+            gl_Position = projectionMatrix * mvPosition;
+          }
+        `;
+
+        const starFragmentShader = `
+          varying float vAlpha;
+          varying float vDistance;
+          varying float vBrightness;
+          
+          void main() {
+            float d = distance(gl_PointCoord, vec2(0.5));
+            if(d > 0.5) discard;
+            
+            // Enhanced glow effect
+            float glow = 1.0 - (d * 2.0);
+            glow = pow(glow, 1.6);
+            
+            // Variable brightness white stars
+            vec3 color = vec3(vBrightness, vBrightness, vBrightness);
+            
+            // Slight distance-based color shift (cooler in distance)
+            float distFactor = smoothstep(800.0, 3000.0, vDistance);
+            color = mix(color, vec3(vBrightness * 0.95, vBrightness * 0.98, vBrightness), distFactor * 0.1);
+            
+            gl_FragColor = vec4(color, vAlpha * glow * 1.0);
+          }
+        `;
+
+        const starMaterial = new THREE.ShaderMaterial({
+          uniforms: {
+            uMouse: { value: new THREE.Vector2(0, 0) },
+            uTime: { value: 0 }
+          },
+          vertexShader: starVertexShader,
+          fragmentShader: starFragmentShader,
+          transparent: true,
+          blending: THREE.AdditiveBlending,
+          depthWrite: false
+        });
+
+        const starField = new THREE.Points(starGeometry, starMaterial);
+        scene.add(starField);
+
+        // --- ANIMATION ---
+        let time = 0;
+        let mouseX = 0;
+        let mouseY = 0;
+
+        function animate() {
+          requestAnimationFrame(animate);
+          time += 0.01;
+
+          // Update shader time
+          diskMaterial.uniforms.uTime.value = time;
+          innerRingMaterial.uniforms.uTime.value = time;
+
+          // Update star field mouse parallax and time
+          starMaterial.uniforms.uMouse.value.set(mouseX, mouseY);
+          starMaterial.uniforms.uTime.value = time;
+
+          // Rotate accretion disk with variable speed
+          accretionDisk.rotation.z += 0.003 + Math.sin(time * 0.5) * 0.0005;
+          innerRing.rotation.z += 0.005 + Math.cos(time * 0.7) * 0.0008;
+
+          // Subtle black hole rotation
+          if (blackHoleMesh) {
+            blackHoleMesh.rotation.y += 0.001;
+          }
+
+          // Enhanced camera parallax with smooth mouse movement
+          const mouseParallaxX = mouseX * 40;
+          const mouseParallaxY = mouseY * 40;
+
+          // Smooth interpolation for camera movement
+          const targetX = mouseParallaxX;
+          const targetY = mouseParallaxY;
+
+          // Slow camera rotation around black hole for 3D effect
+          const orbitAngle = time * 0.04;
+          const baseX = Math.sin(orbitAngle) * 60;
+          const baseY = Math.cos(orbitAngle * 0.6) * 40;
+          const baseZ = CAM_DIST + Math.sin(orbitAngle * 0.4) * 25;
+
+          // Smooth camera movement with easing
+          camera.position.x += (baseX + targetX * 0.6 - camera.position.x) * 0.08;
+          camera.position.y += (baseY + targetY * 0.6 - camera.position.y) * 0.08;
+          camera.position.z += (baseZ - camera.position.z) * 0.05;
+
+          camera.lookAt(0, 0, 0);
+
+          renderer.render(scene, camera);
+        }
+        animate();
+
+        // Mouse tracking for camera parallax only
+        document.addEventListener('mousemove', (e) => {
+          // Normalized coordinates for camera
+          mouseX = (e.clientX / window.innerWidth) * 2 - 1;
+          mouseY = -(e.clientY / window.innerHeight) * 2 + 1;
+        });
+
+        window.addEventListener('resize', () => {
+          camera.aspect = window.innerWidth / window.innerHeight;
+          camera.updateProjectionMatrix();
+          renderer.setSize(window.innerWidth, window.innerHeight);
+          renderer.setPixelRatio(Math.min(window.devicePixelRatio, 3)); // Maintain high resolution
+        });
+      } // End of if (sceneContainer) block
+    </script>
+
+</html>

@@ -1,0 +1,30 @@
+.vercel
+.env*.local
+photoprod.md
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+env/
+venv/
+ENV/
+
+# Secrets
+.env
+session.json
+auth_crash.log
+auth_debug.log
+
+# Databases
+*.db
+*.sqlite3
+
+# Logs
+*.log
+log-*.txt
+
+# OS
+.DS_Store
+Thumbs.db
