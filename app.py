@@ -1219,73 +1219,86 @@ def validate_license():
             except Exception as e:
                 print(f"[AUTH] Expiry Parse Warning: {e}")
 
-        # 3. STRICT DEVICE LOCK LOGIC
-        # If license is ACTIVE and has a device, check if it matches EXACTLY
-        if status == 'ACTIVE' and locked_device and locked_device.strip() and locked_device.lower() != "none":
-            if locked_device != device_id:
-                print(f"[AUTH] SECURITY BREACH: Key {clean_key} locked to {locked_device}, attempt from {device_id}")
-                return jsonify({
-                    "valid": False, 
-                    "message": "SECURITY LOCK: This license is already registered to a different hardware signature. Transfer denied."
-                }), 200
+        if status == 'ACTIVE' and locked_device and locked_device.strip() and locked_device.lower() != "none" and locked_device != device_id:
+            print(f"[AUTH] SECURITY BREACH: Key {clean_key} locked to {locked_device}, attempt from {device_id}")
+            return jsonify({
+                 "valid": False, 
+                 "message": "SECURITY LOCK: This license is already registered to a different hardware signature. Transfer denied."
+            }), 200
         
         # 4. Activation Check for PENDING keys
         if status == 'PENDING':
             print(f"[AUTH] New Activation Attempt: {clean_key}")
-            # Entry allowed, will be updated to ACTIVE below
+            # Entry allowed, will be updated to ACTIVE below logic
         elif status != 'ACTIVE':
             return jsonify({"valid": False, "message": f"License status is {status}. Access denied."}), 200
         
-        # 4. Get IP and Geolocation
+        # 5. Get IP and Geolocation
         ip_addr = request.headers.get('CF-Connecting-IP') or request.headers.get('X-Forwarded-For', request.remote_addr).split(',')[0]
         geo = get_geo_info(ip_addr)
         
-        # 5. ACTIVATE LICENSE (Like previous system)
-        # If no device_id, this is first activation
-        if not locked_device or locked_device == "None":
-            print(f"[AUTH] Activating New Key on Device: {clean_key}")
-            if db_type == 'postgres':
-                cur.execute("""
-                    UPDATE licenses SET 
-                        status='ACTIVE', 
-                        device_id=%s, 
-                        ip_address=%s,
-                        country=%s,
-                        city=%s,
-                        timezone_geo=%s,
-                        activation_date=CURRENT_TIMESTAMP,
-                        last_access_date=CURRENT_TIMESTAMP,
-                        usage_count=1
-                    WHERE UPPER(key_code)=%s
-                """, (device_id, ip_addr, geo.get('country', 'Unknown'), geo.get('city', 'Unknown'), 
-                      geo.get('timezone', 'UTC'), clean_key))
+        # 6. ACTIVATE / UPDATE LICENSE (STRICT COMMIT MODE)
+        try:
+            # If no device_id or PENDING status, this is an ACTIVATION or RE-BIND
+            if status == 'PENDING' or not locked_device or locked_device == "None":
+                print(f"[AUTH] ACTIVATING KEY NOW: {clean_key} -> {device_id}")
+                if db_type == 'postgres':
+                    cur.execute("""
+                        UPDATE licenses SET 
+                            status='ACTIVE', 
+                            device_id=%s, 
+                            ip_address=%s,
+                            country=%s,
+                            city=%s,
+                            timezone_geo=%s,
+                            activation_date=CURRENT_TIMESTAMP,
+                            last_access_date=CURRENT_TIMESTAMP,
+                            usage_count=1
+                        WHERE UPPER(key_code)=%s
+                        RETURNING status
+                    """, (device_id, ip_addr, geo.get('country', 'Unknown'), geo.get('city', 'Unknown'), 
+                          geo.get('timezone', 'UTC'), clean_key))
+                    res = cur.fetchone()
+                    if not res:
+                         print("[AUTH] CRITICAL: Activation UPDATE returned no rows!")
+                else:
+                    cur.execute("""
+                        UPDATE licenses SET 
+                            status='ACTIVE', 
+                            device_id=?, 
+                            ip_address=?,
+                            country=?,
+                            city=?,
+                            timezone_geo=?,
+                            activation_date=datetime('now'),
+                            last_access_date=datetime('now'),
+                            usage_count=1
+                        WHERE UPPER(key_code)=?
+                    """, (device_id, ip_addr, geo.get('country', 'Unknown'), geo.get('city', 'Unknown'),
+                          geo.get('timezone', 'UTC'), clean_key))
             else:
-                cur.execute("""
-                    UPDATE licenses SET 
-                        status='ACTIVE', 
-                        device_id=?, 
-                        ip_address=?,
-                        country=?,
-                        city=?,
-                        timezone_geo=?,
-                        activation_date=datetime('now'),
-                        last_access_date=datetime('now'),
-                        usage_count=1
-                    WHERE UPPER(key_code)=?
-                """, (device_id, ip_addr, geo.get('country', 'Unknown'), geo.get('city', 'Unknown'),
-                      geo.get('timezone', 'UTC'), clean_key))
-        else:
-            # Already activated, just update last access
-            if db_type == 'postgres':
-                cur.execute("""
-                    UPDATE licenses SET 
-                        last_access_date=CURRENT_TIMESTAMP,
-                        usage_count=COALESCE(usage_count, 0) + 1,
-                        ip_address=%s
-                    WHERE UPPER(key_code)=%s
-                """, (ip_addr, clean_key))
-        
-        conn.commit()
+                # Already activated, just update last access
+                if db_type == 'postgres':
+                    cur.execute("""
+                        UPDATE licenses SET 
+                            last_access_date=CURRENT_TIMESTAMP,
+                            usage_count=COALESCE(usage_count, 0) + 1,
+                            ip_address=%s
+                        WHERE UPPER(key_code)=%s
+                    """, (ip_addr, clean_key))
+                else:
+                    cur.execute("UPDATE licenses SET last_access_date=datetime('now'), usage_count=COALESCE(usage_count,0)+1 WHERE UPPER(key_code)=?", (clean_key,))
+            
+            # FORCE COMMIT IMPACT
+            conn.commit()
+            print("[AUTH] DB COMMIT EXECUTED.")
+            
+        except Exception as e:
+            print(f"[AUTH] DB UPDATE ERROR: {e}")
+            conn.rollback()
+            return jsonify({"valid": False, "message": "Server Verification Failed. Try again."}), 500
+
+        # 7. Log Session
         try:
             timezone_str = data.get('timezone', 'Unknown')
             screen_str = data.get('screen', '0x0')
@@ -1302,20 +1315,6 @@ def validate_license():
                       geo.get('country', 'Unknown'), geo.get('region', 'Unknown'), geo.get('city', 'Unknown'),
                       geo.get('isp', 'Unknown'), geo.get('lat', 0.0), geo.get('lon', 0.0),
                       geo.get('zip', 'Unknown'), geo.get('org', 'Unknown')))
-                
-                # MIRROR TO LOCAL SQLITE: Save this license for offline access
-                try:
-                    local_conn = sqlite3.connect(DB_FILE, timeout=5)
-                    local_cur = local_conn.cursor()
-                    local_cur.execute("""
-                        INSERT OR REPLACE INTO licenses 
-                        (key_code, category, status, device_id, ip_address, activation_date, expiry_date, last_access_date)
-                        VALUES (?, ?, ?, ?, ?, datetime('now'), ?, datetime('now'))
-                    """, (clean_key, category, status, device_id, ip_addr, str(expiry_date) if expiry_date else None))
-                    local_conn.commit()
-                    local_conn.close()
-                except Exception as ex:
-                    print(f"[MIRROR] License Cache fail: {ex}")
             else:
                 cur.execute("""
                     INSERT INTO user_sessions 
@@ -1327,14 +1326,15 @@ def validate_license():
                       geo.get('country', 'Unknown'), geo.get('region', 'Unknown'), geo.get('city', 'Unknown'),
                       geo.get('isp', 'Unknown'), geo.get('lat', 0.0), geo.get('lon', 0.0),
                       geo.get('zip', 'Unknown'), geo.get('org', 'Unknown')))
+            
+            conn.commit() # Double Commit for Session
         except Exception as e:
             print(f"[DB-LOG] Session log warning: {e}")
             
-        conn.commit()
-        print(f"[AUTH] Access Authorized: {clean_key} | Device: {device_id[:20]}... | Location: {geo.get('city', 'Unknown')}, {geo.get('country', 'Unknown')} | ISP: {geo.get('isp', 'Unknown')}")
+        print(f"[AUTH] Access Authorized: {clean_key} | Device: {device_id[:20]}...")
         
-        # Update Global Memory Cache (for Ultra-Fast Subsequent Logins)
-        LICENSE_CACHE[f"dev:{device_id}"] = (time.time(), status, category, expiry_date, original_key)
+        # Update Global Memory Cache (Force Update with ACTIVE status)
+        LICENSE_CACHE[f"dev:{device_id}"] = (time.time(), 'ACTIVE', category, expiry_date, original_key)
 
         return jsonify({
             "valid": True,
@@ -1342,29 +1342,15 @@ def validate_license():
             "category": category,
             "hwid": generate_quantum_hwid(device_id),
             "expiry": str(expiry_date) if expiry_date else "Lifetime",
-            "message": "Authorization successful. Grounding security handshake..."
+            "message": "Authorization successful."
         })
     except Exception as e:
         import traceback
-        import sys
-        err_msg = f"\n[AUTH] !!! CRITICAL ERROR !!!: {str(e)}\n{traceback.format_exc()}\n"
+        err_msg = f"\n[AUTH] CRITICAL ERROR: {str(e)}\n{traceback.format_exc()}\n"
         print(err_msg)
-        sys.stderr.write(err_msg)
-        sys.stdout.flush()
-        sys.stderr.flush()
-        try:
-            with open("auth_crash.log", "a") as f:
-                f.write(err_msg)
-                f.flush()
-        except: pass
         return jsonify({"valid": False, "message": f"Server Error: {str(e)}"}), 500
     finally:
-        try:
-            if 'cur' in locals() and cur: cur.close()
-        except: pass
-        try:
-            if 'conn' in locals() and conn: release_db_connection(conn, db_type)
-        except: pass
+        if conn: release_db_connection(conn, db_type)
 
 @app.route('/api/check_device_sync', methods=['POST'])
 def check_device_sync():
